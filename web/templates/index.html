@@ -2,75 +2,300 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Training ML</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoaxCheck — Data Hub</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --primary-color: #2563eb;
+        }
+        body {
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #334155;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            color: #cbd5e1;
+            padding: 20px 14px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .sidebar-brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            padding: 6px 12px 18px 12px;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: #94a3b8;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            transition: all 0.15s ease;
+        }
+        .nav-item-custom:hover {
+            background-color: var(--sidebar-hover);
+            color: #f1f5f9;
+        }
+        .nav-item-custom.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px 36px;
+            min-height: 100vh;
+        }
+        .card-clean {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+        .card-header-clean {
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 16px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #0f172a;
+        }
+        .table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .table td {
+            font-size: 0.88rem;
+            vertical-align: middle;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container mt-5">
-    <h2 class="mb-4">📂 Upload Dataset untuk Training ML</h2>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-shield-check text-primary fs-4"></i>
+        <span>HoaxCheck Studio</span>
+    </div>
+
+    <div class="nav flex-column mb-auto">
+        <a href="/?tab=dataset" class="nav-item-custom {% if active_tab == 'dataset' %}active{% endif %}">
+            <i class="bi bi-folder2-open fs-5"></i>
+            <span>Kelola Dataset</span>
+        </a>
+        <a href="/?tab=scraper" class="nav-item-custom {% if active_tab == 'scraper' %}active{% endif %}">
+            <i class="bi bi-newspaper fs-5"></i>
+            <span>Scraper Berita</span>
+        </a>
+    </div>
+
+    <div class="pt-3 border-top border-secondary border-opacity-25 text-muted small">
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-secondary rounded-circle" style="width: 8px; height: 8px;"></div>
+            <span>Model: Belum Terpasang</span>
+        </div>
+        <div class="mt-1" style="font-size: 11px;">Tahap Riset Unsupervised (UTS)</div>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
 
     <!-- Flash message -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
+          <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <!-- Form Upload -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="/upload" method="POST" enctype="multipart/form-data" class="row g-3">
-                <div class="col-md-8">
-                    <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">Upload</button>
-                </div>
+    <!-- ============================================================== -->
+    <!-- TAB 1: KELOLA DATASET -->
+    <!-- ============================================================== -->
+    {% if active_tab == 'dataset' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">📂 Manajemen File Dataset</h4>
+            <p class="text-muted small mb-0">Daftar file dataset tersimpan di <code>web/uploads/</code>.</p>
+        </div>
+    </div>
+
+    <!-- Upload Box -->
+    <div class="card-clean mb-4">
+        <div class="card-body p-3">
+            <form action="/upload" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+                <span class="small fw-semibold text-muted text-nowrap"><i class="bi bi-upload me-1"></i>Upload Dataset Baru:</span>
+                <input type="file" name="file" class="form-control form-control-sm" accept=".xlsx,.xls,.csv" required>
+                <button type="submit" class="btn btn-sm btn-dark text-nowrap">Upload</button>
             </form>
         </div>
     </div>
 
-    <!-- Daftar File -->
-    <h4>Daftar File Dataset</h4>
-    <table class="table table-bordered table-striped bg-white">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>Nama File</th>
-                <th>Ukuran (KB)</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if files %}
-                {% for f in files %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ f.name }}</td>
-                    <td>{{ f.size }}</td>
-                    <td>
-                        <form action="/delete/{{ f.name }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                onclick="return confirm('Yakin hapus file ini?')">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted">Belum ada file diupload.</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
+    <!-- File Table -->
+    <div class="card-clean">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">#</th>
+                            <th>Nama File</th>
+                            <th>Ukuran</th>
+                            <th>Baris Data</th>
+                            <th>Terakhir Diubah</th>
+                            <th class="text-end pe-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if files %}
+                            {% for f in files %}
+                            <tr>
+                                <td class="ps-4 text-muted">{{ loop.index }}</td>
+                                <td>
+                                    <i class="bi bi-filetype-csv text-primary me-2"></i>
+                                    <strong>{{ f.name }}</strong>
+                                    {% if 'valid' in f.name %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle ms-2">Berita Valid</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ f.size }} KB</td>
+                                <td><span class="badge bg-light text-dark border">{{ f.rows }} baris</span></td>
+                                <td><small class="text-muted">{{ f.modified }}</small></td>
+                                <td class="text-end pe-4">
+                                    <a href="/preview/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Lihat 10 Baris">
+                                        <i class="bi bi-eye"></i> Preview
+                                    </a>
+                                    <a href="/download/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Unduh">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <form action="/delete/{{ f.name }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus file {{ f.name }}?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Belum ada file dataset. Silakan upload dataset atau gunakan menu Scraper Berita.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-    <p class="text-muted mt-3">
-        * Halaman ini hanya untuk engineer/admin. Digunakan untuk mengelola file dataset training ML.
-    </p>
-</div>
+    <!-- ============================================================== -->
+    <!-- TAB 2: SCRAPER BERITA VALID -->
+    <!-- ============================================================== -->
+    {% if active_tab == 'scraper' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">📰 Scraper Berita Valid</h4>
+            <p class="text-muted small mb-0">Tarik berita aktual terpercaya secara real-time untuk persiapan dataset klasifikasi supervised.</p>
+        </div>
+    </div>
 
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card-clean">
+                <div class="card-header-clean d-flex align-items-center gap-2">
+                    <i class="bi bi-cloud-arrow-down text-primary"></i>
+                    <span>Tarik Berita Real-Time (2026)</span>
+                </div>
+                <div class="card-body p-4">
+                    <form action="/scrape" method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label class="form-label small fw-semibold">Pilih Sumber Berita:</label>
+                                <select name="source" class="form-select">
+                                    <option value="all">Semua Portal (Antara, CNN, CNBC) — Rekomendasi</option>
+                                    <option value="antara">Antara News (Resmi Kantor Berita Negara)</option>
+                                    <option value="cnn">CNN Indonesia (Nasional, Tekno, Ekonomi)</option>
+                                    <option value="cnbc">CNBC Indonesia (News, Tech, Market)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold">Target Jumlah Berita:</label>
+                                <select name="limit" class="form-select">
+                                    <option value="100">100 Artikel (~1 detik)</option>
+                                    <option value="200" selected>200 Artikel (~2 detik)</option>
+                                    <option value="500">500 Artikel (~4 detik)</option>
+                                    <option value="all">Semua Tersedia (~750)</option>
+                                </select>
+                            </div>
+                            <div class="col-12 pt-2">
+                                <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                    <i class="bi bi-play-circle me-1"></i> Mulai Scraping Sekarang
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card-clean">
+                <div class="card-header-clean">
+                    <i class="bi bi-info-circle me-1 text-muted"></i>
+                    <span>Tujuan Data Valid</span>
+                </div>
+                <div class="card-body p-3 small text-muted">
+                    <p class="mb-2"><strong>Kenapa butuh berita valid?</strong></p>
+                    <p class="mb-3">
+                        Karena model Unsupervised hanya bisa mengelompokkan topik (misal tema Politik / Kesehatan), untuk benar-benar mendeteksi <strong>Hoaks vs Fakta</strong> kita butuh data berita valid terverifikasi agar bisa dilatih secara <strong>Supervised Learning</strong>.
+                    </p>
+                    <ul class="ps-3 mb-0">
+                        <li><strong>Antara News</strong>: Kantor berita resmi negara.</li>
+                        <li><strong>CNN & CNBC</strong>: Jurnalisme arus utama terverifikasi.</li>
+                        <li>Format: <code>title</code>, <code>excerpt</code>, <code>url</code>, <code>label='valid'</code>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
