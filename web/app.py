@@ -192,10 +192,26 @@ def scrape():
     df.to_csv(filepath, index=False, encoding="utf-8")
 
     latest_path = os.path.join(app.config["UPLOAD_FOLDER"], "berita_valid_terbaru.csv")
-    df.to_csv(latest_path, index=False, encoding="utf-8")
+    if os.path.exists(latest_path):
+        try:
+            df_old = pd.read_csv(latest_path)
+            df_combined = pd.concat([df_old, df], ignore_index=True)
+            if "url" in df_combined.columns:
+                df_combined = df_combined.drop_duplicates(subset=["url"], keep="last")
+            elif "title" in df_combined.columns:
+                df_combined = df_combined.drop_duplicates(subset=["title"], keep="last")
+            df_combined["id"] = range(1, len(df_combined) + 1)
+            df_combined.to_csv(latest_path, index=False, encoding="utf-8")
+            total_latest = len(df_combined)
+        except Exception:
+            df.to_csv(latest_path, index=False, encoding="utf-8")
+            total_latest = len(df)
+    else:
+        df.to_csv(latest_path, index=False, encoding="utf-8")
+        total_latest = len(df)
 
     flash(
-        f"Berhasil men-scrape {len(df)} berita valid! Tersimpan di '{filename}' & 'berita_valid_terbaru.csv'.",
+        f"Berhasil men-scrape {len(df)} berita! Tersimpan di '{filename}' dan digabungkan ke 'berita_valid_terbaru.csv' (Total sekarang: {total_latest} berita).",
         "success"
     )
     return redirect(url_for("index", tab="scraper"))
