@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Kelola Dataset — HoaxCheck Studio{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Manajemen File Dataset</h4>
+    </div>
+</div>
+
+<!-- Upload Box -->
+<div class="card-clean mb-4">
+    <div class="card-body p-3">
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold text-muted text-nowrap"><i class="bi bi-upload me-1"></i>Upload Dataset Baru:</span>
+            <input type="file" name="file" class="form-control form-control-sm" accept=".xlsx,.xls,.csv" required>
+            <button type="submit" class="btn btn-sm btn-dark text-nowrap">Upload File</button>
+        </form>
+    </div>
+</div>
+
+<!-- File Table -->
+<div class="card-clean">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">#</th>
+                        <th>Nama File</th>
+                        <th>Ukuran</th>
+                        <th>Baris Data</th>
+                        <th>Terakhir Diubah</th>
+                        <th class="text-end pe-4">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if files %}
+                        {% for f in files %}
+                        <tr>
+                            <td class="ps-4 text-muted">{{ loop.index }}</td>
+                            <td>
+                                <i class="bi bi-filetype-csv text-primary me-2"></i>
+                                <strong>{{ f.name }}</strong>
+                                {% if 'valid' in f.name %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-2">Berita Valid</span>
+                                {% elif 'hoak' in f.name or 'komdigi' in f.name %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">Berita Hoaks</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ f.size }} KB</td>
+                            <td><span class="badge bg-light text-dark border">{{ f.rows }} baris</span></td>
+                            <td><small class="text-muted">{{ f.modified }}</small></td>
+                            <td class="text-end pe-4">
+                                <a href="/preview/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Lihat 10 Baris">
+                                    <i class="bi bi-eye"></i> Preview
+                                </a>
+                                <a href="/download/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Unduh">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <form action="/delete/{{ f.name }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus file {{ f.name }}?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Belum ada file dataset. Silakan upload dataset atau gunakan menu Scraper Berita.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
