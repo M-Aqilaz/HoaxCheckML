@@ -13,14 +13,16 @@
     <div class="col-lg-8">
         <div class="card-clean">
             <div class="card-header-clean d-flex align-items-center gap-2">
-                <i class="bi bi-cloud-arrow-down text-primary"></i>
+                <div class="icon-badge icon-badge-primary me-2">
+                    <i class="bi bi-cloud-arrow-down text-primary"></i>
+                </div>
                 <span>Tarik Berita Real-Time (Antara, CNN, CNBC)</span>
             </div>
             <div class="card-body p-4">
                 <form action="/scrape" method="POST">
-                    <div class="row g-3">
+                    <div class="row g-4">
                         <div class="col-md-7">
-                            <label class="form-label small fw-semibold">Pilih Sumber Berita:</label>
+                            <label class="form-label small fw-semibold text-secondary">Pilih Sumber Berita:</label>
                             <select name="source" class="form-select">
                                 <option value="all">Semua Portal (Antara, CNN, CNBC) — Rekomendasi</option>
                                 <option value="antara">Antara News (Resmi Kantor Berita Negara)</option>
@@ -29,7 +31,7 @@
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-semibold">Target Jumlah Berita:</label>
+                            <label class="form-label small fw-semibold text-secondary">Target Jumlah Berita:</label>
                             <select name="limit" class="form-select">
                                 <option value="100">100 Artikel (~1 detik)</option>
                                 <option value="200" selected>200 Artikel (~2 detik)</option>
@@ -37,8 +39,8 @@
                                 <option value="all">Semua Tersedia (~750)</option>
                             </select>
                         </div>
-                        <div class="col-12 pt-2">
-                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                        <div class="col-12 pt-1">
+                            <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
                                 <i class="bi bi-play-circle me-1"></i> Mulai Scraping Sekarang
                             </button>
                         </div>

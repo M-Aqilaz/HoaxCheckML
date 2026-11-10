@@ -11,11 +11,15 @@
 
 <!-- Upload Box -->
 <div class="card-clean mb-4">
-    <div class="card-body p-3">
-        <form action="/upload" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
-            <span class="small fw-semibold text-muted text-nowrap"><i class="bi bi-upload me-1"></i>Upload Dataset Baru:</span>
+    <div class="card-body p-3 p-md-4">
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-3">
+            <span class="small fw-semibold text-muted text-nowrap d-flex align-items-center">
+                <i class="bi bi-upload me-2 text-primary fs-5"></i>Upload Dataset Baru:
+            </span>
             <input type="file" name="file" class="form-control form-control-sm" accept=".xlsx,.xls,.csv" required>
-            <button type="submit" class="btn btn-sm btn-dark text-nowrap">Upload File</button>
+            <button type="submit" class="btn btn-sm btn-dark text-nowrap px-3 py-2">
+                <i class="bi bi-cloud-arrow-up me-1"></i> Upload File
+            </button>
         </form>
     </div>
 </div>
@@ -39,37 +43,56 @@
                     {% if files %}
                         {% for f in files %}
                         <tr>
-                            <td class="ps-4 text-muted">{{ loop.index }}</td>
+                            <td class="ps-4 text-muted fw-semibold">{{ loop.index }}</td>
                             <td>
-                                <i class="bi bi-filetype-csv text-primary me-2"></i>
-                                <strong>{{ f.name }}</strong>
-                                {% if 'valid' in f.name %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-2">Berita Valid</span>
-                                {% elif 'hoak' in f.name or 'komdigi' in f.name %}
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">Berita Hoaks</span>
-                                {% endif %}
+                                <div class="d-flex align-items-center">
+                                    {% if f.name.endswith('.csv') %}
+                                        <div class="icon-badge icon-badge-primary me-2">
+                                            <i class="bi bi-filetype-csv"></i>
+                                        </div>
+                                    {% else %}
+                                        <div class="icon-badge icon-badge-success me-2">
+                                            <i class="bi bi-filetype-xlsx"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong class="text-dark">{{ f.name }}</strong>
+                                        {% if 'valid' in f.name %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-2">Berita Valid</span>
+                                        {% elif 'hoak' in f.name or 'komdigi' in f.name %}
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">Berita Hoaks</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </td>
-                            <td>{{ f.size }} KB</td>
-                            <td><span class="badge bg-light text-dark border">{{ f.rows }} baris</span></td>
+                            <td><span class="text-secondary fw-medium">{{ f.size }} KB</span></td>
+                            <td><span class="badge bg-light text-dark border border-secondary-subtle">{{ f.rows }} baris</span></td>
                             <td><small class="text-muted">{{ f.modified }}</small></td>
                             <td class="text-end pe-4">
-                                <a href="/preview/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Lihat 10 Baris">
-                                    <i class="bi bi-eye"></i> Preview
-                                </a>
-                                <a href="/download/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Unduh">
-                                    <i class="bi bi-download"></i>
-                                </a>
-                                <form action="/delete/{{ f.name }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus file {{ f.name }}?')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/preview/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Lihat 10 Baris">
+                                        <i class="bi bi-eye"></i> Preview
+                                    </a>
+                                    <a href="/download/{{ f.name }}" class="btn btn-sm btn-outline-secondary me-1" title="Unduh">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <form action="/delete/{{ f.name }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus file {{ f.name }}?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Belum ada file dataset. Silakan upload dataset atau gunakan menu Scraper Berita.</td>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <div class="py-3">
+                                    <i class="bi bi-folder-x fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                    Belum ada file dataset. Silakan upload dataset atau gunakan menu Scraper Berita.
+                                </div>
+                            </td>
                         </tr>
                     {% endif %}
                 </tbody>
