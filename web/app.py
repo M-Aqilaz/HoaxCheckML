@@ -19,7 +19,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 app.secret_key = "hoaxcheck-secret-key-pbl5"
 
 # Kredensial Login Admin

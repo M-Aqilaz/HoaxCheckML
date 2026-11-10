@@ -60,29 +60,26 @@
         }
 
         .sidebar-brand {
-            font-size: 1.18rem;
-            font-weight: 800;
-            color: #ffffff;
-            padding: 4px 10px 22px 10px;
+            padding: 6px 10px 22px 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.07);
             margin-bottom: 22px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            letter-spacing: -0.02em;
         }
 
-        .brand-icon-wrapper {
-            width: 42px;
-            height: 42px;
-            background: rgba(28, 162, 121, 0.15);
-            border: 1.5px solid rgba(90, 197, 150, 0.35);
-            border-radius: 12px;
-            display: flex;
+        .sidebar-logo-link {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            color: var(--secondary);
-            box-shadow: 0 4px 12px rgba(28, 162, 121, 0.18);
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .sidebar-logo-img {
+            max-width: 100%;
+            height: auto;
+            max-height: 48px;
+            object-fit: contain;
+            display: block;
         }
 
         .nav-item-custom {
@@ -453,11 +450,10 @@
 
 <!-- MOBILE HEADER (KECIL) -->
 <header class="mobile-header">
-    <div class="d-flex align-items-center gap-2">
-        <div class="brand-icon-wrapper" style="width: 32px; height: 32px;">
-            <i class="bi bi-shield-check fs-5"></i>
-        </div>
-        <span class="fw-bold text-white fs-6">HoaxCheck Studio</span>
+    <div class="d-flex align-items-center">
+        <a href="/dataset" class="sidebar-logo-link">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="HoaxCheck Studio" style="max-height: 34px; width: auto; object-fit: contain;">
+        </a>
     </div>
     <button class="btn btn-dark btn-sm text-white rounded-pill px-3" type="button" id="sidebarToggle" aria-label="Toggle Sidebar">
         <i class="bi bi-list fs-5"></i>
@@ -469,10 +465,9 @@
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <div class="brand-icon-wrapper">
-            <i class="bi bi-shield-check fs-4"></i>
-        </div>
-        <span>HoaxCheck Studio</span>
+        <a href="/dataset" class="sidebar-logo-link">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="HoaxCheck Studio" class="sidebar-logo-img">
+        </a>
     </div>
 
     <div class="nav flex-column mb-auto">
