@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoaxCheck — Benchmark & Evaluasi Riset ML</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --primary-color: #2563eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+        body {
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #334155;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            color: #cbd5e1;
+            padding: 22px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .sidebar-brand {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            padding: 6px 12px 18px 12px;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-brand-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            color: #94a3b8;
+            border-radius: 9px;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            transition: all 0.15s ease;
+        }
+        .nav-item-custom:hover {
+            background-color: var(--sidebar-hover);
+            color: #f1f5f9;
+        }
+        .nav-item-custom.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px 36px;
+            min-height: 100vh;
+        }
+        .card-clean {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+        .card-header-clean {
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 18px 24px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #0f172a;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        .champion-card {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 12px 18px;
+            backdrop-filter: blur(4px);
+        }
+        .table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .table td {
+            font-size: 0.88rem;
+            vertical-align: middle;
+        }
+        .badge-rank-1 {
+            background-color: #fef08a;
+            color: #854d0e;
+            border: 1px solid #fde047;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-shield-check text-primary fs-3"></i>
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <span>HoaxCheck</span>
+                <span class="sidebar-brand-badge">Studio</span>
+            </div>
+            <div style="font-size: 11px; font-weight: 400; color: #94a3b8;">Verifikasi Teks & Data ML</div>
+        </div>
+    </div>
+
+    <div class="nav flex-column mb-auto">
+        <a href="/detector" class="nav-item-custom">
+            <i class="bi bi-cpu fs-5"></i>
+            <span>Cek Hoaks (Live ML)</span>
+        </a>
+        <a href="/benchmark" class="nav-item-custom active">
+            <i class="bi bi-graph-up-arrow fs-5"></i>
+            <span>Benchmark Riset ML</span>
+        </a>
+        <a href="/?tab=dataset" class="nav-item-custom">
+            <i class="bi bi-folder2-open fs-5"></i>
+            <span>Kelola Dataset</span>
+        </a>
+        <a href="/?tab=scraper" class="nav-item-custom">
+            <i class="bi bi-newspaper fs-5"></i>
+            <span>Scraper Berita Valid</span>
+        </a>
+    </div>
+
+    <div class="pt-3 border-top border-secondary border-opacity-25 text-muted small">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="bg-success rounded-circle" style="width: 8px; height: 8px;"></div>
+            <span class="text-white small fw-semibold">Evaluasi Selesai</span>
+        </div>
+        <div style="font-size: 11px; color: #94a3b8;">Komparasi 9 Model Supervised & 4 Clustering</div>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h4 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-bar-chart-line text-primary"></i>
+                Dashboard Benchmark & Evaluasi Riset ML
+            </h4>
+            <p class="text-muted small mb-0">Rangkuman komparasi empiris 9 model klasifikasi teks hoaks & clustering topik berita.</p>
+        </div>
+        <div>
+            <a href="/detector" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-cpu me-1"></i> Buka Cek Hoaks Live
+            </a>
+        </div>
+    </div>
+
+    <!-- Champion Model Hero Card -->
+    <div class="champion-card">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7">
+                <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-25 px-3 py-1 rounded-pill small mb-2">
+                    <i class="bi bi-trophy-fill text-warning"></i>
+                    <span class="fw-semibold">Champion Model Terpilih</span>
+                </div>
+                <h3 class="fw-bold mb-2">Bernoulli Naive Bayes (NB_Bernoulli)</h3>
+                <p class="mb-0 opacity-90 small" style="line-height: 1.6;">
+                    Model terbaik secara keseluruhan pada deteksi hoaks bahasa Indonesia. Unggul dalam menangkap sinyal kata provokatif biner tanpa terdistorsi panjang dokumen, dengan akurasi puncak <strong>92.33%</strong> dan latensi inferensi hanya <strong>7.5 milidetik</strong>.
+                </p>
+            </div>
+            <div class="col-lg-5">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="stat-box text-center">
+                            <div class="small opacity-75">Akurasi Uji</div>
+                            <div class="fs-4 fw-bold">92.33%</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box text-center">
+                            <div class="small opacity-75">F1-Score Macro</div>
+                            <div class="fs-4 fw-bold">0.9232</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box text-center">
+                            <div class="small opacity-75">Waktu Inferensi</div>
+                            <div class="fs-4 fw-bold">0.0075 s</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box text-center">
+                            <div class="small opacity-75">Konsumsi Memori</div>
+                            <div class="fs-4 fw-bold">0.39 MB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visual Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card-clean h-100">
+                <div class="card-header-clean d-flex justify-content-between align-items-center">
+                    <span>1. Komparasi Akurasi (%) 9 Model</span>
+                    <span class="badge bg-light text-muted border">Semakin Tinggi Semakin Baik ↑</span>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="accuracyChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card-clean h-100">
+                <div class="card-header-clean d-flex justify-content-between align-items-center">
+                    <span>2. Konsumsi RAM (MB) & Efisiensi</span>
+                    <span class="badge bg-light text-muted border">Semakin Rendah Semakin Ringan ↓</span>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="memoryChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master Comparison Table -->
+    <div class="card-clean mb-4">
+        <div class="card-header-clean d-flex justify-content-between align-items-center">
+            <span class="d-flex align-items-center gap-2">
+                <i class="bi bi-table text-primary"></i>
+                <span>Tabel Evaluasi Lengkap 9 Model Supervised Learning</span>
+            </span>
+            <span class="small text-muted">Data Evaluasi dari <code>Pengujian_Supervised/Perbandingan.ipynb</code></span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Peringkat</th>
+                            <th>Algoritma & Model</th>
+                            <th>Akurasi</th>
+                            <th>F1-Score Macro</th>
+                            <th>Waktu Komputasi</th>
+                            <th>Konsumsi RAM</th>
+                            <th class="pe-4">Karakteristik & Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-success bg-opacity-25">
+                            <td class="ps-4"><span class="badge badge-rank-1">#1 Juara</span></td>
+                            <td><strong>Bernoulli Naive Bayes</strong></td>
+                            <td class="fw-bold text-success">92.33%</td>
+                            <td class="fw-bold">0.9232</td>
+                            <td>0.0075 s (7.5 ms)</td>
+                            <td>0.39 MB</td>
+                            <td class="pe-4"><span class="badge bg-success">Direkomendasikan (Deployment)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#2</span></td>
+                            <td><strong>Multinomial Naive Bayes</strong></td>
+                            <td class="fw-semibold text-dark">89.20%</td>
+                            <td>0.8920</td>
+                            <td>0.0062 s (6.2 ms)</td>
+                            <td>0.15 MB</td>
+                            <td class="pe-4"><span class="badge bg-primary-subtle text-primary border">Paling Ringan di RAM</span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#3</span></td>
+                            <td><strong>SVM Kernel Linear (Cosine)</strong></td>
+                            <td class="fw-semibold text-dark">89.00%</td>
+                            <td>0.8900</td>
+                            <td>0.8499 s</td>
+                            <td>0.88 MB</td>
+                            <td class="pe-4"><span class="badge bg-info-subtle text-info border">Margin Generalisasi Tinggi</span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#4</span></td>
+                            <td>SVM Euclidean Distance</td>
+                            <td>88.67%</td>
+                            <td>0.8865</td>
+                            <td>0.8610 s</td>
+                            <td>0.91 MB</td>
+                            <td class="pe-4 text-muted">Stabil</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#5</span></td>
+                            <td>SVM Manhattan Distance</td>
+                            <td>88.00%</td>
+                            <td>0.8798</td>
+                            <td>0.8950 s</td>
+                            <td>0.95 MB</td>
+                            <td class="pe-4 text-muted">Stabil</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#6</span></td>
+                            <td>Gaussian Naive Bayes</td>
+                            <td>86.65%</td>
+                            <td>0.8660</td>
+                            <td>0.0512 s</td>
+                            <td class="text-danger fw-semibold">36.32 MB</td>
+                            <td class="pe-4"><span class="badge bg-warning-subtle text-warning border">Dense Matrix Overhead</span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#7</span></td>
+                            <td>KNN Cosine (k=5)</td>
+                            <td>85.33%</td>
+                            <td>0.8530</td>
+                            <td>0.0182 s</td>
+                            <td>7.06 MB</td>
+                            <td class="pe-4 text-muted">Menyimpan data latih di RAM</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#8</span></td>
+                            <td>KNN Euclidean (k=5)</td>
+                            <td>83.67%</td>
+                            <td>0.8360</td>
+                            <td>0.0195 s</td>
+                            <td>7.06 MB</td>
+                            <td class="pe-4 text-muted">Jarak terdistorsi dimensi tinggi</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4"><span class="badge bg-light text-dark border">#9</span></td>
+                            <td>KNN Manhattan (k=5)</td>
+                            <td>83.00%</td>
+                            <td>0.8296</td>
+                            <td>0.0210 s</td>
+                            <td>7.06 MB</td>
+                            <td class="pe-4 text-muted">Performa terendah</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scientific Discussion & Insights -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card-clean h-100">
+                <div class="card-header-clean d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text text-primary"></i>
+                    <span>Analisis Ilmiah Mengapa Bernoulli NB Unggul</span>
+                </div>
+                <div class="card-body p-4 small text-muted" style="line-height: 1.7;">
+                    <p class="mb-2"><strong>1. Karakteristik Disinformasi Berbahasa Indonesia:</strong></p>
+                    <p class="mb-3">
+                        Ciri utama hoaks terletak pada <em>keberadaan kata-kata pemicu biner</em> (seperti: <em>"viralkan"</em>, <em>"sebarkan"</em>, <em>"jangan dihapus"</em>, <em>"cair serentak"</em>). Model Bernoulli hanya menghitung apakah kata itu <strong>ada (1) atau tidak (0)</strong>, sehingga sinyal hoaks langsung tertangkap kuat tanpa peduli berapa kali kata itu diulang.
+                    </p>
+                    <p class="mb-2"><strong>2. Latensi Instan Sangat Cocok untuk Mobile API:</strong></p>
+                    <p class="mb-0">
+                        Dengan waktu inferensi <strong>7 milidetik</strong> dan ukuran RAM hanya <strong>0.39 MB</strong>, Bernoulli NB dapat dijalankan ribuan kali per detik tanpa membebani server backend aplikasi mobile Flutter.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card-clean h-100">
+                <div class="card-header-clean d-flex align-items-center gap-2">
+                    <i class="bi bi-pie-chart text-success"></i>
+                    <span>Hasil Riset Klastering Topik (Unsupervised)</span>
+                </div>
+                <div class="card-body p-4 small text-muted" style="line-height: 1.7;">
+                    <p class="mb-2"><strong>K-Means dengan <code>max_features = 1.000</code> Paling Optimal:</strong></p>
+                    <ul class="ps-3 mb-3">
+                        <li><strong>1.000 Kata</strong>: Silhouette Score <strong>0.0524</strong> (🏆 Klaster terpisah paling rapi).</li>
+                        <li><strong>3.000 Kata</strong>: Silhouette Score 0.0353 (turun ~32%).</li>
+                        <li><strong>Semua Kata (8.206)</strong>: Silhouette Score anjlok menjadi 0.0255 (>50% lebih buruk).</li>
+                    </ul>
+                    <p class="mb-0">
+                        <strong>Penyebab Ilmiah:</strong> Membatasi fitur pada 1.000 kata berhasil membuang ribuan kata <em>noise</em> (typo, tautan acak, nama unik yang hanya muncul 1 kali) dan menghindari fenomena <em>Curse of Dimensionality</em>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Chart 1: Akurasi (%)
+const ctxAcc = document.getElementById('accuracyChart').getContext('2d');
+new Chart(ctxAcc, {
+    type: 'bar',
+    data: {
+        labels: ['NB Bernoulli', 'NB Multinomial', 'SVM Cosine', 'SVM Euclidean', 'SVM Manhattan', 'NB Gaussian', 'KNN Cosine', 'KNN Euclidean', 'KNN Manhattan'],
+        datasets: [{
+            label: 'Akurasi Model (%)',
+            data: [92.33, 89.20, 89.00, 88.67, 88.00, 86.65, 85.33, 83.67, 83.00],
+            backgroundColor: [
+                '#10b981', '#3b82f6', '#2563eb', '#60a5fa', '#93c5fd', '#f59e0b', '#f97316', '#fb923c', '#fdba74'
+            ],
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                min: 75,
+                max: 100,
+                ticks: { callback: v => v + '%' }
+            }
+        }
+    }
+});
+
+// Chart 2: Konsumsi RAM (MB)
+const ctxMem = document.getElementById('memoryChart').getContext('2d');
+new Chart(ctxMem, {
+    type: 'bar',
+    data: {
+        labels: ['NB Multinomial', 'NB Bernoulli', 'SVM Cosine', 'KNN (Simpan Data)', 'NB Gaussian (Dense Matrix)'],
+        datasets: [{
+            label: 'Konsumsi RAM (MB)',
+            data: [0.15, 0.39, 0.88, 7.06, 36.32],
+            backgroundColor: ['#10b981', '#10b981', '#3b82f6', '#f97316', '#ef4444'],
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                ticks: { callback: v => v + ' MB' }
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
+

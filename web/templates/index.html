@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
-            --sidebar-width: 240px;
+            --sidebar-width: 250px;
             --sidebar-bg: #0f172a;
             --sidebar-hover: #1e293b;
             --primary-color: #2563eb;
@@ -26,33 +26,43 @@
             left: 0;
             background-color: var(--sidebar-bg);
             color: #cbd5e1;
-            padding: 20px 14px;
+            padding: 22px 16px;
             display: flex;
             flex-direction: column;
             z-index: 1000;
         }
         .sidebar-brand {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 700;
             color: #ffffff;
             padding: 6px 12px 18px 12px;
             border-bottom: 1px solid #1e293b;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+        .sidebar-brand-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            text-transform: uppercase;
+            font-weight: 600;
         }
         .nav-item-custom {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px;
+            padding: 11px 14px;
             color: #94a3b8;
-            border-radius: 8px;
+            border-radius: 9px;
             text-decoration: none;
             font-size: 0.92rem;
             font-weight: 500;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             transition: all 0.15s ease;
         }
         .nav-item-custom:hover {
@@ -63,6 +73,7 @@
             background-color: var(--primary-color);
             color: #ffffff;
             font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
         .main-content {
             margin-left: var(--sidebar-width);
@@ -72,17 +83,19 @@
         .card-clean {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.03);
             margin-bottom: 24px;
         }
         .card-header-clean {
             background: #ffffff;
             border-bottom: 1px solid #f1f5f9;
-            padding: 16px 20px;
+            padding: 18px 24px;
             font-weight: 600;
             font-size: 1rem;
             color: #0f172a;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
         }
         .table th {
             background-color: #f8fafc;
@@ -104,27 +117,37 @@
 <!-- SIDEBAR -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <i class="bi bi-shield-check text-primary fs-4"></i>
-        <span>HoaxCheck Studio</span>
+        <i class="bi bi-shield-check text-primary fs-3"></i>
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <span>HoaxCheck</span>
+                <span class="sidebar-brand-badge">Studio</span>
+            </div>
+            <div style="font-size: 11px; font-weight: 400; color: #94a3b8;">Verifikasi Teks & Data ML</div>
+        </div>
     </div>
 
     <div class="nav flex-column mb-auto">
+        <a href="/detector" class="nav-item-custom">
+            <i class="bi bi-cpu fs-5"></i>
+            <span>Cek Hoaks (Live)</span>
+        </a>
         <a href="/?tab=dataset" class="nav-item-custom {% if active_tab == 'dataset' %}active{% endif %}">
             <i class="bi bi-folder2-open fs-5"></i>
             <span>Kelola Dataset</span>
         </a>
         <a href="/?tab=scraper" class="nav-item-custom {% if active_tab == 'scraper' %}active{% endif %}">
             <i class="bi bi-newspaper fs-5"></i>
-            <span>Scraper Berita</span>
+            <span>Scraper Berita Valid</span>
         </a>
     </div>
 
     <div class="pt-3 border-top border-secondary border-opacity-25 text-muted small">
-        <div class="d-flex align-items-center gap-2">
-            <div class="bg-secondary rounded-circle" style="width: 8px; height: 8px;"></div>
-            <span>Model: Belum Terpasang</span>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="bg-primary rounded-circle" style="width: 8px; height: 8px;"></div>
+            <span class="text-white small fw-semibold">Model Acuan</span>
         </div>
-        <div class="mt-1" style="font-size: 11px;">Tahap Riset Unsupervised (UTS)</div>
+        <div style="font-size: 11px; color: #94a3b8;">Bernoulli Naive Bayes (92.33%)</div>
     </div>
 </aside>
 
@@ -151,6 +174,11 @@
         <div>
             <h4 class="fw-bold mb-1">📂 Manajemen File Dataset</h4>
             <p class="text-muted small mb-0">Daftar file dataset tersimpan di <code>web/uploads/</code>.</p>
+        </div>
+        <div>
+            <a href="/detector" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-cpu me-1"></i> Buka Cek Hoaks Live
+            </a>
         </div>
     </div>
 
@@ -238,7 +266,7 @@
             <div class="card-clean">
                 <div class="card-header-clean d-flex align-items-center gap-2">
                     <i class="bi bi-cloud-arrow-down text-primary"></i>
-                    <span>Tarik Berita Real-Time (2026)</span>
+                    <span>Tarik Berita Real-Time (Portal Resmi Kredibel)</span>
                 </div>
                 <div class="card-body p-4">
                     <form action="/scrape" method="POST">

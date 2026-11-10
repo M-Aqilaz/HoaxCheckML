@@ -4,8 +4,13 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
+
+try:
+    from web.ml_detector import detector_engine
+except ImportError:
+    from ml_detector import detector_engine
 
 app = Flask(__name__)
 app.secret_key = "hoaxcheck-secret-key-pbl5"
@@ -152,6 +157,26 @@ def index():
         files=files,
         active_tab=active_tab
     )
+
+
+@app.route("/detector")
+def detector():
+    return render_template("detector.html")
+
+
+@app.route("/benchmark")
+def benchmark():
+    return render_template("benchmark.html")
+
+
+@app.route("/api/predict", methods=["POST"])
+def api_predict():
+    data = request.get_json(silent=True) or {}
+    text = data.get("text") or request.form.get("text", "")
+    model_name = data.get("model") or request.form.get("model", "bernoulli")
+    
+    result = detector_engine.predict(text, model_name=model_name)
+    return jsonify(result)
 
 
 @app.route("/upload", methods=["POST"])
