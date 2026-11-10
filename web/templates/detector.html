@@ -4,28 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoaxCheck — AI Fact-Checking & Live ML Inference Studio</title>
-    <!-- Fonts -->
+    <!-- Fonts: Design System Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <style>
         :root {
-            --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --sidebar-width: 260px;
-            --sidebar-bg: #090d16;
-            --sidebar-hover: #131b2e;
-            --primary: #4f46e5;
-            --primary-light: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.25);
-            --danger: #ef4444;
-            --danger-glow: rgba(239, 68, 68, 0.2);
-            --success: #10b981;
-            --success-glow: rgba(16, 185, 129, 0.2);
-            --card-border: #e2e8f0;
-            --bg-page: #f8fafc;
+            --sidebar-bg: #1b1c1d;
+            --sidebar-hover: #303031;
+
+            /* Primary (Emerald / Forest Ramp) */
+            --primary: #006c4e;
+            --primary-base: #1ca379;
+            --primary-dark: #00513a;
+            --primary-light: #45bf93;
+            --primary-subtle: #e6f8f0;
+            --primary-border: #82f8c8;
+            --primary-glow: rgba(0, 108, 78, 0.25);
+
+            /* Secondary (Mint Ramp) */
+            --secondary: #5ac596;
+            --secondary-dark: #005237;
+            --secondary-subtle: #edfbf4;
+
+            /* Tertiary (Sky Blue Ramp) */
+            --tertiary: #236391;
+            --tertiary-base: #78b0e3;
+            --tertiary-subtle: #e8f2ff;
+            --tertiary-border: #cde5ff;
+
+            /* Neutral (Charcoal / Gray Ramp) */
+            --neutral-darkest: #1b1c1d;
+            --neutral-dark: #242526;
+            --neutral-surface: #303031;
+            --neutral-muted: #5e5e5f;
+            --neutral-border: #e3e2e3;
+            --neutral-light: #f2f0f1;
+            --bg-page: #f8f9fa;
+
+            /* Semantic */
+            --danger: #ba1a1a;
+            --danger-subtle: #fff1f2;
+            --danger-border: #fca5a5;
+            --danger-glow: rgba(186, 26, 26, 0.2);
+            --success: #006c4e;
+            --success-subtle: #e6f8f0;
+            --success-border: #82f8c8;
+            --success-glow: rgba(0, 108, 78, 0.2);
+            --card-border: #e3e2e3;
         }
 
         * {
@@ -35,11 +66,11 @@
         body {
             background-color: var(--bg-page);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(28, 163, 121, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(120, 176, 227, 0.05) 0px, transparent 50%);
             background-attachment: fixed;
             font-family: var(--font-family);
-            color: #1e293b;
+            color: var(--neutral-dark);
             letter-spacing: -0.01em;
             margin: 0;
             padding: 0;
@@ -54,7 +85,7 @@
             left: 0;
             background-color: var(--sidebar-bg);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
-            color: #94a3b8;
+            color: #ababac;
             padding: 24px 16px;
             display: flex;
             flex-direction: column;
@@ -73,13 +104,13 @@
         .brand-icon {
             width: 38px;
             height: 38px;
-            background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-            border-radius: 10px;
+            background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+            box-shadow: 0 4px 12px rgba(0, 108, 78, 0.35);
         }
 
         .brand-title {
@@ -92,7 +123,7 @@
 
         .brand-subtitle {
             font-size: 11px;
-            color: #64748b;
+            color: #797879;
             font-weight: 500;
         }
 
@@ -100,9 +131,9 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 14px;
-            color: #94a3b8;
-            border-radius: 10px;
+            padding: 12px 16px;
+            color: #ababac;
+            border-radius: 9999px;
             text-decoration: none;
             font-size: 0.92rem;
             font-weight: 500;
@@ -112,15 +143,15 @@
 
         .nav-item-custom:hover {
             background-color: var(--sidebar-hover);
-            color: #f8fafc;
+            color: #f2f0f1;
             transform: translateX(2px);
         }
 
         .nav-item-custom.active {
-            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            background: #006c4e;
             color: #ffffff;
             font-weight: 600;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.35);
         }
 
         /* MAIN CONTENT */
@@ -130,25 +161,25 @@
             min-height: 100vh;
         }
 
-        /* CARDS & GLASSMORPHISM */
+        /* CARDS */
         .card-modern {
             background: #ffffff;
-            border: 1px solid rgba(226, 232, 240, 0.85);
-            border-radius: 18px;
-            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+            border: 1px solid var(--neutral-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px -2px rgba(36, 37, 38, 0.04), 0 2px 6px -1px rgba(36, 37, 38, 0.02);
             margin-bottom: 26px;
             overflow: hidden;
             transition: box-shadow 0.25s ease, border-color 0.25s ease;
         }
 
         .card-modern:hover {
-            box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.07);
-            border-color: #cbd5e1;
+            box-shadow: 0 10px 30px -4px rgba(36, 37, 38, 0.07);
+            border-color: #c7c6c7;
         }
 
         .card-header-modern {
             background: #ffffff;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--neutral-light);
             padding: 20px 26px;
             display: flex;
             align-items: center;
@@ -158,7 +189,7 @@
         .card-header-title {
             font-size: 1rem;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--neutral-dark);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -166,7 +197,7 @@
 
         /* HERO HEADER */
         .hero-title-gradient {
-            background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #4f46e5 100%);
+            background: linear-gradient(135deg, #1b1c1d 0%, #00513a 60%, #1ca379 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
@@ -175,11 +206,11 @@
 
         /* LIVE STATUS PILL */
         .live-status-pill {
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            padding: 6px 14px;
-            border-radius: 20px;
+            background: var(--primary-subtle);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+            padding: 7px 16px;
+            border-radius: 9999px;
             font-size: 0.8rem;
             font-weight: 600;
             display: inline-flex;
@@ -190,40 +221,40 @@
         .pulse-dot {
             width: 8px;
             height: 8px;
-            background-color: #10b981;
+            background-color: #1ca379;
             border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            box-shadow: 0 0 0 0 rgba(28, 163, 121, 0.7);
             animation: pulse-green 1.8s infinite;
         }
 
         @keyframes pulse-green {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(28, 163, 121, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(28, 163, 121, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(28, 163, 121, 0); }
         }
 
         /* INPUT TEXTAREA */
         .inference-textarea {
-            border: 1.5px solid #e2e8f0;
-            border-radius: 14px;
+            border: 1.5px solid var(--neutral-border);
+            border-radius: 18px;
             padding: 18px 20px;
             font-size: 0.98rem;
             line-height: 1.65;
             background-color: #ffffff;
-            color: #0f172a;
+            color: var(--neutral-dark);
             resize: vertical;
             transition: all 0.2s ease;
         }
 
         .inference-textarea:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+            border-color: #1ca379;
+            box-shadow: 0 0 0 4px rgba(28, 163, 121, 0.15);
             outline: none;
             background-color: #ffffff;
         }
 
         .inference-textarea::placeholder {
-            color: #94a3b8;
+            color: #ababac;
             font-weight: 400;
         }
 
@@ -232,41 +263,41 @@
             cursor: pointer;
             font-size: 0.82rem;
             font-weight: 600;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            border-radius: 24px;
-            padding: 7px 15px;
+            border: 1px solid var(--neutral-border);
+            background: var(--neutral-light);
+            border-radius: 9999px;
+            padding: 7px 16px;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #475569;
+            color: var(--neutral-dark);
             display: inline-flex;
             align-items: center;
             gap: 7px;
         }
 
         .sample-pill:hover {
-            background: #f1f5f9;
-            color: #0f172a;
+            background: #e3e2e3;
+            color: var(--neutral-darkest);
             transform: translateY(-1px);
-            border-color: #cbd5e1;
+            border-color: #c7c6c7;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
 
         .sample-pill.hoax:hover {
             border-color: #fca5a5;
-            background: #fff1f2;
-            color: #b91c1c;
+            background: var(--danger-subtle);
+            color: var(--danger);
         }
 
         .sample-pill.valid:hover {
-            border-color: #86efac;
-            background: #f0fdf4;
-            color: #15803d;
+            border-color: #82f8c8;
+            background: var(--primary-subtle);
+            color: var(--primary);
         }
 
         /* MODEL CARDS */
         .model-select-card {
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
+            border: 1.5px solid var(--neutral-border);
+            border-radius: 14px;
             padding: 12px 16px;
             background: #ffffff;
             cursor: pointer;
@@ -277,63 +308,105 @@
         }
 
         .model-select-card:hover {
-            border-color: #818cf8;
-            background: #faf5ff;
+            border-color: #1ca379;
+            background: #f4f8f6;
         }
 
         .model-select-card.active {
-            border-color: #4f46e5;
-            background: #eef2ff;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.12);
+            border-color: #006c4e;
+            background: #e6f8f0;
+            box-shadow: 0 2px 8px rgba(0, 108, 78, 0.12);
         }
 
-        /* BUTTONS */
-        .btn-gradient-primary {
-            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        /* BUTTONS (DESIGN SYSTEM PILL SHAPE) */
+        .btn-gradient-primary, .btn-ds-primary {
+            background: #006c4e;
             color: #ffffff;
             border: none;
-            border-radius: 12px;
-            padding: 12px 24px;
+            border-radius: 9999px;
+            padding: 11px 24px;
             font-weight: 600;
             font-size: 0.95rem;
             letter-spacing: -0.01em;
-            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
-            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            text-decoration: none;
         }
 
-        .btn-gradient-primary:hover {
+        .btn-gradient-primary:hover, .btn-ds-primary:hover {
+            background: #00513a;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+            box-shadow: 0 6px 20px rgba(0, 108, 78, 0.4);
             color: #ffffff;
         }
 
-        .btn-gradient-primary:active {
+        .btn-gradient-primary:active, .btn-ds-primary:active {
             transform: translateY(0);
         }
 
-        .btn-soft {
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 20px;
+        .btn-soft, .btn-ds-secondary {
+            background: var(--neutral-light);
+            color: var(--neutral-dark);
+            border: 1px solid var(--neutral-border);
+            border-radius: 9999px;
+            padding: 11px 22px;
             font-weight: 600;
+            font-size: 0.92rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-soft:hover, .btn-ds-secondary:hover {
+            background: #e3e2e3;
+            color: var(--neutral-darkest);
+        }
+
+        .btn-ds-outlined {
+            background: transparent;
+            color: var(--neutral-dark);
+            border: 1.5px solid #c7c6c7;
+            border-radius: 9999px;
+            padding: 9px 20px;
+            font-weight: 600;
+            font-size: 0.88rem;
             transition: all 0.2s ease;
         }
 
-        .btn-soft:hover {
-            background: #e2e8f0;
-            color: #0f172a;
+        .btn-ds-outlined:hover {
+            background: var(--neutral-light);
+            border-color: #5e5e5f;
         }
+
+        /* Circular Action Buttons (Design System 4 Actions) */
+        .btn-circle-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            transition: all 0.2s ease;
+            color: #ffffff;
+        }
+
+        .btn-circle-action.primary { background: #006c4e; }
+        .btn-circle-action.primary:hover { background: #00513a; transform: scale(1.06); }
+        .btn-circle-action.secondary { background: #1ca379; }
+        .btn-circle-action.secondary:hover { background: #158360; transform: scale(1.06); }
+        .btn-circle-action.tertiary { background: #236391; }
+        .btn-circle-action.tertiary:hover { background: #1a4d72; transform: scale(1.06); }
+        .btn-circle-action.danger { background: #ba1a1a; }
+        .btn-circle-action.danger:hover { background: #961313; transform: scale(1.06); }
 
         /* RESULT SHOWCASE STYLING */
         .result-box-hoax {
-            background: linear-gradient(145deg, #fff5f5 0%, #fef2f2 100%);
-            border: 1.5px solid #fecaca;
-            border-radius: 16px;
+            background: linear-gradient(145deg, #fff5f5 0%, #fff1f2 100%);
+            border: 1.5px solid #fca5a5;
+            border-radius: 18px;
             padding: 26px 22px;
             box-shadow: 0 8px 24px -4px var(--danger-glow);
             position: relative;
@@ -341,9 +414,9 @@
         }
 
         .result-box-valid {
-            background: linear-gradient(145deg, #f0fdf4 0%, #ecfdf5 100%);
-            border: 1.5px solid #a7f3d0;
-            border-radius: 16px;
+            background: linear-gradient(145deg, #f0fdf4 0%, #e6f8f0 100%);
+            border: 1.5px solid #82f8c8;
+            border-radius: 18px;
             padding: 26px 22px;
             box-shadow: 0 8px 24px -4px var(--success-glow);
             position: relative;
@@ -353,7 +426,7 @@
         .verdict-icon-container {
             width: 68px;
             height: 68px;
-            border-radius: 20px;
+            border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -361,21 +434,21 @@
         }
 
         .verdict-hoax .verdict-icon-container {
-            background: rgba(239, 68, 68, 0.12);
-            color: #dc2626;
-            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
+            background: #ba1a1a;
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(186, 26, 26, 0.35);
         }
 
         .verdict-valid .verdict-icon-container {
-            background: rgba(16, 185, 129, 0.12);
-            color: #059669;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+            background: #006c4e;
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(0, 108, 78, 0.35);
         }
 
         .confidence-meter-container {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
+            border: 1px solid var(--neutral-border);
+            border-radius: 16px;
             padding: 18px 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
@@ -383,26 +456,26 @@
 
         .confidence-progress-bg {
             height: 14px;
-            background-color: #f1f5f9;
-            border-radius: 8px;
+            background-color: var(--neutral-light);
+            border-radius: 9999px;
             overflow: hidden;
             position: relative;
         }
 
         .confidence-progress-fill {
             height: 100%;
-            border-radius: 8px;
+            border-radius: 9999px;
             transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .fill-hoax {
-            background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+            background: linear-gradient(90deg, #ef4444 0%, #ba1a1a 100%);
+            box-shadow: 0 0 10px rgba(186, 26, 26, 0.4);
         }
 
         .fill-valid {
-            background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            background: linear-gradient(90deg, #1ca379 0%, #006c4e 100%);
+            box-shadow: 0 0 10px rgba(0, 108, 78, 0.4);
         }
 
         /* LINGUISTIC TAGS */
@@ -411,8 +484,8 @@
             align-items: center;
             gap: 6px;
             font-size: 0.8rem;
-            padding: 6px 12px;
-            border-radius: 8px;
+            padding: 6px 14px;
+            border-radius: 9999px;
             font-weight: 600;
             margin-right: 6px;
             margin-bottom: 8px;
@@ -424,21 +497,21 @@
         }
 
         .tag-danger {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            border: 1px solid #fca5a5;
+            background-color: var(--danger-subtle);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
         }
 
         .tag-success {
-            background-color: #dcfce7;
-            color: #15803d;
-            border: 1px solid #86efac;
+            background-color: var(--primary-subtle);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
         }
 
         .tag-info {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            border: 1px solid #bae6fd;
+            background-color: var(--tertiary-subtle);
+            color: var(--tertiary);
+            border: 1px solid var(--tertiary-border);
         }
 
         /* EVIDENCE WORD CHIPS */
@@ -446,30 +519,30 @@
             display: inline-flex;
             align-items: center;
             font-size: 0.82rem;
-            padding: 5px 12px;
-            border-radius: 6px;
+            padding: 5px 14px;
+            border-radius: 9999px;
             font-weight: 600;
             margin-right: 6px;
             margin-bottom: 6px;
         }
 
         .chip-hoax {
-            background-color: #ffe4e6;
-            color: #e11d48;
-            border: 1px solid #fecdd3;
+            background-color: var(--danger-subtle);
+            color: var(--danger);
+            border: 1px solid #fecaca;
         }
 
         .chip-valid {
-            background-color: #ecfdf5;
-            color: #047857;
-            border: 1px solid #a7f3d0;
+            background-color: var(--primary-subtle);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
         }
 
         /* METRIC BADGE */
         .metric-mini-card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border: 1px solid var(--neutral-border);
+            border-radius: 14px;
             padding: 12px;
             text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
@@ -479,15 +552,45 @@
             position: fixed;
             bottom: 24px;
             right: 24px;
-            background: #0f172a;
+            background: var(--neutral-darkest);
             color: #ffffff;
             padding: 12px 20px;
-            border-radius: 10px;
+            border-radius: 9999px;
             font-size: 0.9rem;
             font-weight: 500;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             display: none;
             z-index: 9999;
+        }
+
+        /* Decorative 3-bar signature accent from Design System */
+        .ds-accent-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 52px;
+        }
+        .ds-accent-lines span:nth-child(1) { height: 3px; width: 100%; background: #006c4e; border-radius: 2px; }
+        .ds-accent-lines span:nth-child(2) { height: 3px; width: 75%; background: #1ca379; border-radius: 2px; }
+        .ds-accent-lines span:nth-child(3) { height: 3px; width: 50%; background: #236391; border-radius: 2px; }
+
+        .badge-primary-ds {
+            background-color: var(--primary-subtle);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+            font-weight: 600;
+        }
+
+        .text-danger {
+            color: var(--danger) !important;
+        }
+
+        .text-success {
+            color: var(--success) !important;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
         }
     </style>
 </head>
@@ -529,7 +632,7 @@
             <div class="pulse-dot"></div>
             <span class="text-white small fw-bold">ML Engine Active</span>
         </div>
-        <div style="font-size: 11px; color: #64748b;">Bernoulli Naive Bayes & NLP</div>
+        <div style="font-size: 11px; color: #797879;">Bernoulli Naive Bayes & NLP</div>
     </div>
 </aside>
 
@@ -539,8 +642,13 @@
     <!-- Top Banner / Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">PROYEK RISET NLP & ML</span>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge badge-primary-ds rounded-pill px-3 py-1" style="font-size: 11px;">PROYEK RISET NLP & ML</span>
+                <div class="ds-accent-lines">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
             <h2 class="hero-title-gradient mb-1">Deteksi & Verifikasi Hoaks Berita</h2>
             <p class="text-muted small mb-0">Uji keabsahan narasi klaim atau pesan berantai secara instan menggunakan pemodelan Machine Learning.</p>
@@ -559,10 +667,10 @@
             <div class="card-modern">
                 <div class="card-header-modern">
                     <span class="card-header-title">
-                        <i class="bi bi-keyboard text-primary fs-5"></i>
+                        <i class="bi bi-keyboard fs-5" style="color: var(--primary);"></i>
                         <span>Konsol Uji Narasi Berita</span>
                     </span>
-                    <span class="badge bg-light text-muted border px-3 py-1" id="charCounter" style="font-size: 11px;">0 Karakter | 0 Kata</span>
+                    <span class="badge bg-light text-muted border px-3 py-1 rounded-pill" id="charCounter" style="font-size: 11px;">0 Karakter | 0 Kata</span>
                 </div>
                 <div class="card-body p-4">
 
@@ -590,12 +698,12 @@
                     <!-- Model Selection -->
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-dark mb-2 d-flex justify-content-between">
-                            <span><i class="bi bi-sliders2 text-primary me-1"></i> Pilih Algoritma Machine Learning:</span>
+                            <span><i class="bi bi-sliders2 me-1" style="color: var(--primary);"></i> Pilih Algoritma Machine Learning:</span>
                             <span class="text-muted fw-normal" style="font-size: 11px;">1.500 Fitur TF-IDF</span>
                         </label>
                         <div class="row g-2">
                             <div class="col-md-6">
-                                <select id="modelSelect" class="form-select form-select-sm p-2 fw-medium border-light-subtle">
+                                <select id="modelSelect" class="form-select form-select-sm p-2 fw-medium border-light-subtle rounded-3">
                                     <option value="bernoulli" selected>🏆 Bernoulli Naive Bayes (Akurasi 92.33%)</option>
                                     <option value="multinomial">⚡ Multinomial Naive Bayes (Akurasi 89.20%)</option>
                                     <option value="svm">🎯 Linear Support Vector Machine (Akurasi 89.00%)</option>
@@ -605,7 +713,7 @@
                             <div class="col-md-6">
                                 <div class="bg-light p-2 rounded-3 border d-flex align-items-center justify-content-between small text-muted">
                                     <span>Pencegahan Data Leakage</span>
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Aktif (Tag Disaring)</span>
+                                    <span class="badge badge-primary-ds rounded-pill">Aktif (Tag Disaring)</span>
                                 </div>
                             </div>
                         </div>
@@ -613,11 +721,11 @@
 
                     <!-- Action Buttons -->
                     <div class="d-flex flex-wrap gap-2 pt-2 border-top">
-                        <button type="button" id="btnSubmit" class="btn-gradient-primary shadow" onclick="runMLPrediction()">
+                        <button type="button" id="btnSubmit" class="btn-ds-primary" onclick="runMLPrediction()">
                             <i class="bi bi-search" id="btnIcon"></i>
                             <span id="btnText">Analisis & Verifikasi ML</span>
                         </button>
-                        <button type="button" class="btn btn-soft" onclick="pasteClipboard()">
+                        <button type="button" class="btn-ds-secondary" onclick="pasteClipboard()">
                             <i class="bi bi-clipboard me-1"></i> Tempel Teks
                         </button>
                     </div>
@@ -629,10 +737,10 @@
             <div class="card-modern">
                 <div class="card-header-modern">
                     <span class="card-header-title">
-                        <i class="bi bi-book text-primary fs-5"></i>
+                        <i class="bi bi-book fs-5" style="color: var(--primary);"></i>
                         <span>Indikator Pola Manipulatif Disinformasi Indonesia</span>
                     </span>
-                    <span class="badge bg-light text-secondary border" style="font-size: 11px;">Edukasi Literasi</span>
+                    <span class="badge badge-secondary-ds rounded-pill px-3 py-1" style="font-size: 11px;">Edukasi Literasi</span>
                 </div>
                 <div class="card-body p-4 small text-muted">
                     <div class="row g-3">
@@ -670,10 +778,10 @@
             <div class="card-modern">
                 <div class="card-header-modern">
                     <span class="card-header-title">
-                        <i class="bi bi-activity text-primary fs-5"></i>
+                        <i class="bi bi-activity fs-5" style="color: var(--primary);"></i>
                         <span>Panel Hasil Inferensi Model</span>
                     </span>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 10px; font-weight: 700;">
+                    <span class="badge badge-primary-ds rounded-pill px-3 py-1" style="font-size: 10px; font-weight: 700;">
                         REAL-TIME ML INFERENCE
                     </span>
                 </div>
@@ -690,7 +798,7 @@
                         <p class="small text-muted mb-4" style="max-width: 320px; margin: 0 auto; line-height: 1.5;">
                             Ketikkan teks klaim berita di sebelah kiri atau klik contoh cepat untuk menguji sistem inferensi Machine Learning.
                         </p>
-                        <button type="button" class="btn btn-sm btn-outline-primary px-3 py-2 fw-semibold rounded-pill" onclick="loadSample('hoax')">
+                        <button type="button" class="btn btn-ds-primary" onclick="loadSample('hoax')">
                             <i class="bi bi-play-circle me-1"></i> Uji Contoh Hoaks WhatsApp
                         </button>
                     </div>
@@ -701,7 +809,7 @@
                         <!-- Status Banner -->
                         <div id="statusBanner" class="result-box-hoax mb-4 text-center">
                             <div class="verdict-icon-container" id="statusIcon">
-                                <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                                <i class="bi bi-exclamation-triangle-fill fs-2"></i>
                             </div>
                             <h4 id="statusTitle" class="fw-bold mb-1" style="letter-spacing: -0.02em;">TERINDIKASI HOAKS</h4>
                             <p id="statusDesc" class="small text-muted mb-0">Teks memiliki kemiripan tinggi dengan korpus arsip hoaks Komdigi & memuat pola manipulatif.</p>
@@ -711,7 +819,7 @@
                         <div class="confidence-meter-container">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="small fw-bold text-dark d-flex align-items-center gap-1">
-                                    <i class="bi bi-speedometer2 text-primary"></i> Tingkat Keyakinan Model:
+                                    <i class="bi bi-speedometer2" style="color: var(--primary);"></i> Tingkat Keyakinan Model:
                                 </span>
                                 <span id="confidenceValue" class="fw-bold fs-5 text-danger">94.8%</span>
                             </div>
@@ -727,7 +835,7 @@
                         <!-- Indikator Pola Kebahasaan -->
                         <div class="mb-4">
                             <label class="form-label small fw-bold text-dark mb-2 d-flex align-items-center gap-1">
-                                <i class="bi bi-tags text-primary"></i> Pola Kebahasaan Terdeteksi:
+                                <i class="bi bi-tags" style="color: var(--primary);"></i> Pola Kebahasaan Terdeteksi:
                             </label>
                             <div id="tagContainer">
                                 <!-- Tags inserted dynamically -->
@@ -737,7 +845,7 @@
                         <!-- Kata Kunci Pembobot ML -->
                         <div class="mb-4">
                             <label class="form-label small fw-bold text-dark mb-2 d-flex align-items-center gap-1">
-                                <i class="bi bi-key text-primary"></i> Kata Kunci Pembobot Model (Dataset Komdigi):
+                                <i class="bi bi-key" style="color: var(--primary);"></i> Kata Kunci Pembobot Model (Dataset Komdigi):
                             </label>
                             <div id="evidenceContainer">
                                 <!-- Evidence inserted dynamically -->
@@ -759,7 +867,7 @@
 
                         <!-- Tombol Aksi Hasil: Salin Laporan -->
                         <div class="d-flex gap-2 mb-4">
-                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-2 fw-semibold rounded-3" onclick="copyReport()">
+                            <button type="button" class="btn-ds-secondary w-100 py-2 text-center" onclick="copyReport()">
                                 <i class="bi bi-copy me-1"></i> Salin Laporan Hasil (WhatsApp)
                             </button>
                         </div>
@@ -782,7 +890,7 @@
                                 <div class="col-4">
                                     <div class="metric-mini-card">
                                         <div class="text-muted" style="font-size: 10px; font-weight: 600;">AKURASI RISET</div>
-                                        <div class="fw-bold text-primary small">92.33%</div>
+                                        <div class="fw-bold small" style="color: var(--primary);">92.33%</div>
                                     </div>
                                 </div>
                             </div>
@@ -798,7 +906,30 @@
                     <span class="small fw-bold text-dark d-flex align-items-center gap-1">
                         <i class="bi bi-trophy text-warning"></i> Model Terbaik Riset
                     </span>
-                    <a href="/benchmark" class="text-decoration-none small fw-bold text-primary">Lihat Grafik & Evaluasi &rarr;</a>
+                    <a href="/benchmark" class="text-decoration-none small fw-bold" style="color: var(--primary);">Lihat Grafik & Evaluasi &rarr;</a>
+                </div>
+                <div class="card-body p-3 small text-muted">
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <span><strong>1. Bernoulli Naive Bayes</strong> (Pilihan Kami)</span>
+                        <span class="badge badge-primary-ds rounded-pill fw-bold">92.33%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <span>2. Multinomial Naive Bayes</span>
+                        <span class="text-dark fw-semibold">89.20%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <span>3. Support Vector Machine (Linear)</span>
+                        <span class="text-dark fw-semibold">89.00%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>4. K-Nearest Neighbors (Cosine k=5)</span>
+                        <span class="text-dark fw-semibold">85.33%</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
                 </div>
                 <div class="card-body p-3 small text-muted">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
