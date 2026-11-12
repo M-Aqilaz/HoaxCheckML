@@ -1,0 +1,16 @@
+{
+    "algorithm": "Bernoulli Naive Bayes",
+    "accuracy": 94.0,
+    "precision": 94.07,
+    "recall": 94.0,
+    "f1_score": 94.0,
+    "duration_seconds": 0.0107,
+    "total_samples": 1498,
+    "hoax_samples": 749,
+    "valid_samples": 749,
+    "train_samples": 1198,
+    "test_samples": 300,
+    "hoax_file": "komdigi_hoaks.csv",
+    "valid_file": "berita_valid_terbaru.csv",
+    "trained_at": "29-10-2026 17:12:22"
+}
