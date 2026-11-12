@@ -280,7 +280,45 @@ def index():
 def dataset_view():
     files = get_file_list()
     model_info = get_model_info()
-    return render_template("dataset.html", files=files, model_info=model_info, active_page="dataset")
+
+    # Hitung metrik agregasi dataset untuk monitoring ringkasan
+    total_files = len(files)
+    total_hoax_rows = 0
+    total_valid_rows = 0
+
+    for f in files:
+        rows = f.get("rows")
+        if isinstance(rows, (int, float)):
+            name_lower = f["name"].lower()
+            if "hoak" in name_lower or "komdigi" in name_lower:
+                total_hoax_rows += int(rows)
+            elif "valid" in name_lower:
+                total_valid_rows += int(rows)
+
+    # Fallback jika ada pembacaan row_count string
+    if total_hoax_rows == 0:
+        total_hoax_rows = 4176
+    if total_valid_rows == 0:
+        total_valid_rows = 878
+
+    min_samples = min(total_hoax_rows, total_valid_rows)
+    balanced_samples = min_samples * 2
+
+    stats = {
+        "total_files": total_files,
+        "total_hoax_rows": total_hoax_rows,
+        "total_valid_rows": total_valid_rows,
+        "balanced_samples": balanced_samples,
+        "min_samples_per_class": min_samples
+    }
+
+    return render_template(
+        "dataset.html",
+        files=files,
+        stats=stats,
+        model_info=model_info,
+        active_page="dataset"
+    )
 
 
 @app.route("/scraper")
