@@ -409,28 +409,247 @@ def benchmark():
     return render_template("benchmark.html")
 
 
-@app.route("/api/predict", methods=["POST"])
+# Master metadata evaluasi riset ML (9 Model Supervised)
+PIPELINE_MODELS_DATA = {
+    "NB_Bernoulli": {
+        "name": "Bernoulli Naive Bayes",
+        "category": "Probabilistic (Binarized Occurrence)",
+        "accuracy": 92.33,
+        "precision_macro": 0.9264,
+        "recall_macro": 0.9233,
+        "f1_macro": 0.9232,
+        "f1_weighted": 0.9232,
+        "latency_sec": 0.0075,
+        "latency_ms": 7.5,
+        "memory_mb": 0.39,
+        "cm": {"tn": 155, "fp": 21, "fn": 6, "tp": 170, "total": 352},
+        "description": "Model klasifikasi terbaik dengan akurasi 92.33%. Sangat unggul karena hanya memeriksa kemunculan biner kata provokatif (ada/tidak ada) tanpa terdistorsi panjang berita.",
+        "badge": "Champion PBL",
+        "rank": 1
+    },
+    "NB_Multinomial": {
+        "name": "Multinomial Naive Bayes",
+        "category": "Probabilistic (Word Frequency / TF-IDF)",
+        "accuracy": 89.20,
+        "precision_macro": 0.8921,
+        "recall_macro": 0.8920,
+        "f1_macro": 0.8920,
+        "f1_weighted": 0.8920,
+        "latency_sec": 0.0118,
+        "latency_ms": 11.8,
+        "memory_mb": 0.15,
+        "cm": {"tn": 158, "fp": 18, "fn": 20, "tp": 156, "total": 352},
+        "description": "Menggunakan frekuensi kemunculan kata atau bobot TF-IDF. Sangat hemat memori (0.15 MB), cocok untuk server berspesifikasi minimalis.",
+        "badge": "Paling Hemat RAM",
+        "rank": 2
+    },
+    "SVM_Cosine": {
+        "name": "SVM Kernel Linear (Cosine Similarity)",
+        "category": "Geometric Margin (Linear)",
+        "accuracy": 89.00,
+        "precision_macro": 0.8902,
+        "recall_macro": 0.8900,
+        "f1_macro": 0.8900,
+        "f1_weighted": 0.8900,
+        "latency_sec": 0.8499,
+        "latency_ms": 849.9,
+        "memory_mb": 0.88,
+        "cm": {"tn": 135, "fp": 15, "fn": 18, "tp": 132, "total": 300},
+        "description": "Menemukan hyperplane pemisah optimal dengan sudut kosinus antar-vektor TF-IDF. Margin generalisasi sangat stabil.",
+        "badge": "Optimal Linear",
+        "rank": 3
+    },
+    "SVM_Euclidean": {
+        "name": "SVM Kernel RBF (Euclidean Distance)",
+        "category": "Geometric Margin (Non-Linear RBF)",
+        "accuracy": 89.00,
+        "precision_macro": 0.8909,
+        "recall_macro": 0.8900,
+        "f1_macro": 0.8899,
+        "f1_weighted": 0.8899,
+        "latency_sec": 1.4132,
+        "latency_ms": 1413.2,
+        "memory_mb": 0.88,
+        "cm": {"tn": 137, "fp": 13, "fn": 20, "tp": 130, "total": 300},
+        "description": "Memetakan fitur teks ke dimensi tak terhingga menggunakan fungsi Radial Basis Function (RBF). Akurasi setara Cosine namun waktu latih lebih lama.",
+        "badge": "Kernel RBF",
+        "rank": 4
+    },
+    "NB_Gaussian": {
+        "name": "Gaussian Naive Bayes",
+        "category": "Probabilistic (Normal Continuous)",
+        "accuracy": 86.65,
+        "precision_macro": 0.8685,
+        "recall_macro": 0.8665,
+        "f1_macro": 0.8663,
+        "f1_weighted": 0.8663,
+        "latency_sec": 0.0452,
+        "latency_ms": 45.2,
+        "memory_mb": 36.32,
+        "cm": {"tn": 146, "fp": 30, "fn": 17, "tp": 159, "total": 352},
+        "description": "Mengasumsikan distribusi fitur kontinu kontinyu gaussian. Menghabiskan RAM lebih banyak (36.3 MB) karena matriks kovarian padat.",
+        "badge": "Distribusi Gaussian",
+        "rank": 5
+    },
+    "KNN_Euclidean": {
+        "name": "KNN Euclidean Distance (k=5)",
+        "category": "Instance-Based Distance",
+        "accuracy": 83.00,
+        "precision_macro": 0.8333,
+        "recall_macro": 0.8300,
+        "f1_macro": 0.8296,
+        "f1_weighted": 0.8296,
+        "latency_sec": 0.0213,
+        "latency_ms": 21.3,
+        "memory_mb": 5.73,
+        "cm": {"tn": 117, "fp": 33, "fn": 18, "tp": 132, "total": 300},
+        "description": "Mengkalkulasi jarak lurus Euclidean antar titik data teks. Mengalami penurunan efektivitas pada ruang berdimensi tinggi (sparse vector).",
+        "badge": "Jarak Euclidean",
+        "rank": 6
+    },
+    "KNN_Cosine": {
+        "name": "KNN Cosine Distance (k=5)",
+        "category": "Instance-Based Angle",
+        "accuracy": 82.39,
+        "precision_macro": 0.8300,
+        "recall_macro": 0.8239,
+        "f1_macro": 0.8230,
+        "f1_weighted": 0.8230,
+        "latency_sec": 0.0346,
+        "latency_ms": 34.6,
+        "memory_mb": 9.68,
+        "cm": {"tn": 134, "fp": 42, "fn": 20, "tp": 156, "total": 352},
+        "description": "Menghitung sudut orientasi kemiripan teks. Cukup tangguh namun memerlukan pencarian tetangga ke seluruh dataset saat prediksi.",
+        "badge": "Sudut Cosine",
+        "rank": 7
+    },
+    "SVM_Manhattan": {
+        "name": "SVM Kernel Laplacian (Manhattan Distance)",
+        "category": "Geometric Margin (Laplacian)",
+        "accuracy": 80.00,
+        "precision_macro": 0.8571,
+        "recall_macro": 0.8000,
+        "f1_macro": 0.7917,
+        "f1_weighted": 0.7917,
+        "latency_sec": 1.8937,
+        "latency_ms": 1893.7,
+        "memory_mb": 21.98,
+        "cm": {"tn": 150, "fp": 0, "fn": 60, "tp": 90, "total": 300},
+        "description": "Menggunakan metrik Cityblock L1 distance. Cenderung bias ke kelas mayoritas dan lambat saat komputasi kernel matriks.",
+        "badge": "Jarak L1",
+        "rank": 8
+    },
+    "KNN_Manhattan": {
+        "name": "KNN Manhattan Distance (k=5)",
+        "category": "Instance-Based L1",
+        "accuracy": 50.00,
+        "precision_macro": 0.2500,
+        "recall_macro": 0.5000,
+        "f1_macro": 0.3333,
+        "f1_weighted": 0.3333,
+        "latency_sec": 0.0504,
+        "latency_ms": 50.4,
+        "memory_mb": 0.27,
+        "cm": {"tn": 0, "fp": 150, "fn": 0, "tp": 150, "total": 300},
+        "description": "Gagal total dalam menggeneralisasi data teks berdimensi 1,500 (Akurasi 50% = tebakan acak), akibat fenomena 'Curse of Dimensionality'.",
+        "badge": "Terkendala Dimensi",
+        "rank": 9
+    }
+}
+
+
+@app.route("/pipeline")
+def pipeline():
+    # Statistik Preprocessing & Top Discriminative Words
+    sorted_hoax = [
+        {"word": k, "weight": round(v, 2)}
+        for k, v in sorted(detector_engine.log_weights.items(), key=lambda x: x[1], reverse=True)[:15]
+    ]
+    sorted_valid = [
+        {"word": k, "weight": round(abs(v), 2), "raw_weight": round(v, 2)}
+        for k, v in sorted(detector_engine.log_weights.items(), key=lambda x: x[1])[:15]
+    ]
+
+    stats = {
+        "total_hoax_raw": detector_engine.total_hoax_samples or 4176,
+        "total_valid_raw": detector_engine.total_valid_samples or 878,
+        "balanced_total": (detector_engine.total_valid_samples or 878) * 2,
+        "train_samples": int((detector_engine.total_valid_samples or 878) * 2 * 0.8),
+        "test_samples": int((detector_engine.total_valid_samples or 878) * 2 * 0.2),
+        "vocab_size": detector_engine.vocab_size or 3006,
+        "avg_raw_len": 65.6,
+        "avg_clean_len": 56.2,
+        "noise_reduction_pct": 14.3
+    }
+
+    return render_template(
+        "pipeline.html",
+        models_data=PIPELINE_MODELS_DATA,
+        stats=stats,
+        sorted_hoax=sorted_hoax,
+        sorted_valid=sorted_valid
+    )
+
+
+@app.route("/api/pipeline/simulate", methods=["POST", "OPTIONS"])
+def api_pipeline_simulate():
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "ok"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
+        return response, 200
+
+    data = request.get_json(silent=True) or {}
+    text = data.get("text") or request.form.get("text", "")
+    model_name = data.get("model") or request.form.get("model", "bernoulli")
+
+    result = detector_engine.simulate_pipeline(text, model_name=model_name)
+    response = jsonify(result)
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
+@app.route("/api/pipeline/models", methods=["GET"])
+def api_pipeline_models():
+    return jsonify(PIPELINE_MODELS_DATA)
+
+
+@app.route("/api/predict", methods=["POST", "OPTIONS"])
 def api_predict():
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "ok"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
+        return response, 200
+
     data = request.get_json(silent=True) or request.form or {}
     text = (data.get("text") or "").strip()
     model_name = data.get("model") or "bernoulli"
     
     if not text:
-        return jsonify({
+        response = jsonify({
             "status": "error",
             "message": "Field 'text' tidak boleh kosong."
-        }), 400
+        })
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 400
     
     try:
         result = detector_engine.predict(text, model_name=model_name)
         result["prediction"] = result.get("label", "HOAKS")
         result["model"] = result.get("model_name", "Bernoulli Naive Bayes")
-        return jsonify(result)
+        response = jsonify(result)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
     except Exception as e:
-        return jsonify({
+        response = jsonify({
             "status": "error",
             "message": str(e)
-        }), 500
+        })
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 500
 
 
 @app.route("/upload", methods=["POST"])
@@ -577,4 +796,4 @@ def delete(filename):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
