@@ -24,6 +24,11 @@ try:
 except ImportError:
     from ml_detector import detector_engine
 
+try:
+    from web import cms_service
+except ImportError:
+    import cms_service
+
 app = Flask(__name__)
 app.secret_key = "hoaxcheck-secret-key-pbl5"
 
@@ -830,6 +835,188 @@ def delete(filename):
     else:
         flash("File tidak ditemukan.", "danger")
     return redirect(url_for("dataset_view"))
+
+
+# -------------------------------------------------------------
+# CMS / MANAJEMEN KONTEN MOBILE DINAMIS (TIPS, PANDUAN, TENTANG)
+# -------------------------------------------------------------
+
+@app.route("/mobile-content")
+@login_required
+def mobile_content_view():
+    tab = request.args.get("tab", "tips")
+    tips = cms_service.get_literacy_tips()
+    guide = cms_service.get_guide_data()
+    app_info = cms_service.get_app_info()
+    model_info = get_model_info()
+    return render_template(
+        "mobile_content.html",
+        active_tab=tab,
+        tips=tips,
+        guide=guide,
+        app_info=app_info,
+        model_info=model_info,
+        active_page="mobile_content"
+    )
+
+
+@app.route("/mobile-content/tips/save", methods=["POST"])
+@login_required
+def cms_save_tip():
+    tip_id = request.form.get("id") or None
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    tip_number = request.form.get("tip_number", "Tips").strip()
+    icon_name = request.form.get("icon_name", "fact_check").strip()
+    icon_bg_hex = request.form.get("icon_bg_hex", "#D1FAE5").strip()
+    icon_color_hex = request.form.get("icon_color_hex", "#059669").strip()
+    category = request.form.get("category", "Umum").strip()
+    try:
+        order_index = int(request.form.get("order_index", 1))
+    except ValueError:
+        order_index = 1
+    is_active = request.form.get("is_active") == "on"
+
+    tip_data = {
+        "title": title,
+        "description": description,
+        "tip_number": tip_number,
+        "icon_name": icon_name,
+        "icon_bg_hex": icon_bg_hex,
+        "icon_color_hex": icon_color_hex,
+        "category": category,
+        "order_index": order_index,
+        "is_active": is_active
+    }
+    cms_service.save_tip(tip_data, tip_id=tip_id)
+    flash("Tips Literasi berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    return redirect(url_for("mobile_content_view", tab="tips"))
+
+
+@app.route("/mobile-content/tips/delete/<tip_id>", methods=["POST"])
+@login_required
+def cms_delete_tip(tip_id):
+    cms_service.delete_tip(tip_id)
+    flash("Tips Literasi berhasil dihapus.", "success")
+    return redirect(url_for("mobile_content_view", tab="tips"))
+
+
+@app.route("/mobile-content/tips/toggle/<tip_id>", methods=["POST"])
+@login_required
+def cms_toggle_tip(tip_id):
+    new_status = cms_service.toggle_tip_status(tip_id)
+    status_str = "diaktifkan" if new_status else "dinonaktifkan"
+    flash(f"Tips Literasi berhasil {status_str}.", "info")
+    return redirect(url_for("mobile_content_view", tab="tips"))
+
+
+@app.route("/mobile-content/guide/save-content", methods=["POST"])
+@login_required
+def cms_save_guide_content():
+    quote_text = request.form.get("quote_text", "").strip()
+    checklist_title = request.form.get("checklist_title", "Hal yang Perlu Diperhatikan").strip()
+    checklist_subtitle = request.form.get("checklist_subtitle", "").strip()
+    raw_items = request.form.get("checklist_items", "").strip()
+    checklist_items = [line.strip() for line in raw_items.splitlines() if line.strip()]
+
+    cms_service.save_guide_content(quote_text, checklist_title, checklist_subtitle, checklist_items)
+    flash("Kutipan & Checklist Panduan berhasil disimpan!", "success")
+    return redirect(url_for("mobile_content_view", tab="guide"))
+
+
+@app.route("/mobile-content/guide/save-principle", methods=["POST"])
+@login_required
+def cms_save_guide_principle():
+    p_id = request.form.get("id") or None
+    step_number = request.form.get("step_number", "1").strip()
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    try:
+        order_index = int(request.form.get("order_index", 1))
+    except ValueError:
+        order_index = 1
+
+    raw_points = request.form.get("sub_points_raw", "").strip()
+    sub_points = []
+    for line in raw_points.splitlines():
+        line = line.strip()
+        if line:
+            sub_points.append({"icon": "check_circle", "text": line})
+
+    p_data = {
+        "step_number": step_number,
+        "title": title,
+        "description": description,
+        "order_index": order_index,
+        "sub_points": sub_points
+    }
+    cms_service.save_guide_principle(p_data, principle_id=p_id)
+    flash("Prinsip Panduan berhasil disimpan!", "success")
+    return redirect(url_for("mobile_content_view", tab="guide"))
+
+
+@app.route("/mobile-content/guide/delete-principle/<p_id>", methods=["POST"])
+@login_required
+def cms_delete_guide_principle(p_id):
+    cms_service.delete_guide_principle(p_id)
+    flash("Prinsip Panduan berhasil dihapus.", "success")
+    return redirect(url_for("mobile_content_view", tab="guide"))
+
+
+@app.route("/mobile-content/about/save", methods=["POST"])
+@login_required
+def cms_save_app_info():
+    tagline = request.form.get("tagline", "").strip()
+    header_description = request.form.get("header_description", "").strip()
+    about_description = request.form.get("about_description", "").strip()
+    disclaimer_text = request.form.get("disclaimer_text", "").strip()
+    app_version = request.form.get("app_version", "HoaxCheck v1.0.0").strip()
+    
+    raw_pills = request.form.get("pills_raw", "").strip()
+    pills = [p.strip() for p in raw_pills.split(",") if p.strip()]
+
+    step1_title = request.form.get("step1_title", "Masukkan Teks")
+    step1_desc = request.form.get("step1_desc", "")
+    step2_title = request.form.get("step2_title", "Analisis Linguistik AI")
+    step2_desc = request.form.get("step2_desc", "")
+    step3_title = request.form.get("step3_title", "Hasil & Skor Kepercayaan")
+    step3_desc = request.form.get("step3_desc", "")
+
+    steps = [
+        {"number": "01", "icon": "edit_note", "title": step1_title, "description": step1_desc},
+        {"number": "02", "icon": "psychology", "title": step2_title, "description": step2_desc},
+        {"number": "03", "icon": "fact_check", "title": step3_title, "description": step3_desc}
+    ]
+
+    info_data = {
+        "app_name": "HoaxCheck",
+        "tagline": tagline,
+        "header_description": header_description,
+        "about_description": about_description,
+        "pills": pills,
+        "steps": steps,
+        "disclaimer_text": disclaimer_text,
+        "app_version": app_version
+    }
+    cms_service.save_app_info(info_data)
+    flash("Informasi Tentang HoaxCheck berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    return redirect(url_for("mobile_content_view", tab="about"))
+
+
+@app.route("/api/mobile/content", methods=["GET"])
+def api_mobile_content():
+    tips = cms_service.get_literacy_tips()
+    guide = cms_service.get_guide_data()
+    app_info = cms_service.get_app_info()
+
+    response = jsonify({
+        "status": "success",
+        "literacy_tips": tips,
+        "guide": guide,
+        "app_info": app_info
+    })
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 
 
