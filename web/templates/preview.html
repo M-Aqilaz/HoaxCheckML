@@ -4,35 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preview Dataset — {{ filename }}</title>
+    <!-- Fonts: Design System Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .table-preview th { background-color: #1b365d; color: white; white-space: nowrap; }
-        .table-preview td { font-size: 13px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        :root {
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --primary: #006c4e;
+            --primary-base: #1ca379;
+            --primary-dark: #00513a;
+            --primary-subtle: #e6f8f0;
+            --primary-border: #82f8c8;
+            --secondary: #5ac596;
+            --tertiary: #236391;
+            --neutral-dark: #242526;
+            --neutral-darkest: #1b1c1d;
+            --neutral-muted: #5e5e5f;
+            --neutral-border: #e3e2e3;
+            --neutral-light: #f2f0f1;
+            --bg-page: #f8f9fa;
+        }
+
+        body { 
+            background-color: var(--bg-page); 
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(28, 163, 121, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(120, 176, 227, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            font-family: var(--font-family); 
+            color: var(--neutral-dark);
+        }
+
+        .btn-ds-primary {
+            background: #006c4e;
+            color: #ffffff;
+            border: none;
+            border-radius: 9999px;
+            padding: 9px 20px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-ds-primary:hover {
+            background: #00513a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 108, 78, 0.4);
+            color: #ffffff;
+        }
+
+        .btn-ds-secondary {
+            background: var(--neutral-light);
+            color: var(--neutral-dark);
+            border: 1px solid var(--neutral-border);
+            border-radius: 9999px;
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-ds-secondary:hover {
+            background: #e3e2e3;
+            color: var(--neutral-darkest);
+        }
+
+        .table-preview th { 
+            background-color: var(--primary-dark); 
+            color: #ffffff; 
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap; 
+            padding: 14px 16px;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .table-preview td { 
+            font-size: 13px; 
+            max-width: 320px; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+            padding: 12px 16px;
+            border-color: var(--neutral-border);
+        }
+
+        .table-preview tbody tr:hover {
+            background-color: var(--primary-subtle);
+        }
+
+        .card-modern {
+            background: #ffffff;
+            border: 1px solid var(--neutral-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px -2px rgba(36, 37, 38, 0.04);
+            overflow: hidden;
+        }
+
+        /* Decorative 3-bar signature accent from Design System */
+        .ds-accent-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 48px;
+        }
+        .ds-accent-lines span:nth-child(1) { height: 3px; width: 100%; background: #006c4e; border-radius: 2px; }
+        .ds-accent-lines span:nth-child(2) { height: 3px; width: 75%; background: #1ca379; border-radius: 2px; }
+        .ds-accent-lines span:nth-child(3) { height: 3px; width: 50%; background: #236391; border-radius: 2px; }
     </style>
 </head>
 <body>
 
 <div class="container-fluid py-4 px-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <a href="/dataset" class="btn btn-outline-secondary btn-sm mb-2"><i class="bi bi-arrow-left me-1"></i>Kembali ke Dataset</a>
-            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-table me-2 text-primary"></i>Preview Dataset: <span class="text-primary">{{ filename }}</span></h4>
-            <p class="text-muted small mb-0">Menampilkan {{ total_preview }} baris pertama dari file dataset.</p>
+            <a href="/dataset" class="btn btn-ds-secondary mb-2"><i class="bi bi-arrow-left"></i>Kembali ke Dataset</a>
+            <div class="d-flex align-items-center gap-3">
+                <h4 class="fw-bold mb-0" style="color: var(--neutral-dark);">
+                    <i class="bi bi-table me-2" style="color: var(--primary);"></i>Preview Dataset: <span style="color: var(--primary);">{{ filename }}</span>
+                </h4>
+                <div class="ds-accent-lines d-none d-sm-flex">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <p class="text-muted small mb-0 mt-1">Menampilkan {{ total_preview }} baris pertama dari berkas dataset pelatihan.</p>
         </div>
         <div>
-            <a href="/download/{{ filename }}" class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i>Download Full File</a>
+            <a href="/download/{{ filename }}" class="btn btn-ds-primary"><i class="bi bi-download me-1"></i>Download Full File</a>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card-modern">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-bordered table-hover table-preview mb-0">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th class="text-center" style="width: 60px;">#</th>
                             {% for col in columns %}
                                 <th>{{ col }}</th>
                             {% endfor %}

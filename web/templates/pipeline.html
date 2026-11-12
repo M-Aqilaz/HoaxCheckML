@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoaxCheck — Visualisasi Pipeline Machine Learning</title>
+    <!-- Fonts: Design System Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-code: 'Fira Code', monospace;
+            --sidebar-width: 260px;
+            --sidebar-bg: #1b1c1d;
+            --sidebar-hover: #303031;
+
+            /* Primary Ramp */
+            --primary: #006c4e;
+            --primary-base: #1ca379;
+            --primary-dark: #00513a;
+            --primary-light: #45bf93;
+            --primary-subtle: #e6f8f0;
+            --primary-border: #82f8c8;
+
+            /* Secondary Ramp */
+            --secondary: #5ac596;
+            --secondary-dark: #005237;
+            --secondary-subtle: #edfbf4;
+
+            /* Tertiary Ramp */
+            --tertiary: #236391;
+            --tertiary-base: #78b0e3;
+            --tertiary-subtle: #e8f2ff;
+            --tertiary-border: #cde5ff;
+
+            /* Neutral Ramp */
+            --neutral-darkest: #1b1c1d;
+            --neutral-dark: #242526;
+            --neutral-surface: #303031;
+            --neutral-muted: #5e5e5f;
+            --neutral-border: #e3e2e3;
+            --neutral-light: #f2f0f1;
+            --bg-page: #f8f9fa;
+
+            /* Semantic */
+            --danger: #ba1a1a;
+            --danger-subtle: #fff1f2;
+            --danger-border: #fca5a5;
+            --success: #006c4e;
+            --success-subtle: #e6f8f0;
+            --success-border: #82f8c8;
+            --warning: #d97706;
+            --warning-subtle: #fffbeb;
+            --warning-border: #fde68a;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(28, 163, 121, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(120, 176, 227, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            font-family: var(--font-family);
+            color: var(--neutral-dark);
+            letter-spacing: -0.01em;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* SIDEBAR STYLES */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            color: #ababac;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 6px 12px 20px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 108, 78, 0.35);
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: #797879;
+            font-weight: 500;
+        }
+
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ababac;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-item-custom:hover {
+            background-color: var(--sidebar-hover);
+            color: #f2f0f1;
+            transform: translateX(2px);
+        }
+
+        .nav-item-custom.active {
+            background: #006c4e;
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.35);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 32px 42px;
+            min-height: 100vh;
+        }
+
+        /* CARD STYLES */
+        .card-clean {
+            background: #ffffff;
+            border: 1px solid var(--neutral-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px -2px rgba(36, 37, 38, 0.04);
+            margin-bottom: 24px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-header-clean {
+            background: #ffffff;
+            border-bottom: 1px solid var(--neutral-border);
+            padding: 18px 24px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--neutral-darkest);
+        }
+
+        .ds-accent-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 52px;
+        }
+        .ds-accent-lines span:nth-child(1) { height: 3px; width: 100%; background: #006c4e; border-radius: 2px; }
+        .ds-accent-lines span:nth-child(2) { height: 3px; width: 75%; background: #1ca379; border-radius: 2px; }
+        .ds-accent-lines span:nth-child(3) { height: 3px; width: 50%; background: #236391; border-radius: 2px; }
+
+        .hero-title-gradient {
+            background: linear-gradient(135deg, #1b1c1d 0%, #00513a 60%, #1ca379 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        /* BUTTONS & BADGES */
+        .btn-ds-primary {
+            background: #006c4e;
+            color: #ffffff;
+            border: none;
+            border-radius: 9999px;
+            padding: 10px 22px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.3);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-ds-primary:hover {
+            background: #00513a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 108, 78, 0.4);
+            color: #ffffff;
+        }
+
+        .btn-ds-outlined {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+            border-radius: 9999px;
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-ds-outlined:hover {
+            background: var(--primary-subtle);
+            color: var(--primary);
+        }
+
+        .badge-primary-ds {
+            background-color: var(--primary-subtle);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+            font-weight: 600;
+        }
+
+        .badge-secondary-ds {
+            background-color: var(--secondary-subtle);
+            color: var(--secondary-dark);
+            border: 1px solid var(--secondary);
+            font-weight: 600;
+        }
+
+        .badge-tertiary-ds {
+            background-color: var(--tertiary-subtle);
+            color: var(--tertiary);
+            border: 1px solid var(--tertiary-border);
+            font-weight: 600;
+        }
+
+        /* PIPELINE TIMELINE STEP STYLES */
+        .pipeline-stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin: 20px 0 35px 0;
+        }
+
+        .pipeline-stepper::before {
+            content: "";
+            position: absolute;
+            top: 24px;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: #e3e2e3;
+            z-index: 1;
+        }
+
+        .step-node {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background: transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            text-decoration: none;
+        }
+
+        .step-node:hover {
+            transform: translateY(-2px);
+        }
+
+        .step-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2.5px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #6b7280;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .step-node.active .step-circle {
+            background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
+            border-color: #006c4e;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.35);
+        }
+
+        .step-label {
+            margin-top: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #4b5563;
+        }
+
+        .step-node.active .step-label {
+            color: var(--primary);
+        }
+
+        .step-sublabel {
+            font-size: 0.72rem;
+            color: #9ca3af;
+        }
+
+        /* LIVE SIMULATOR STYLES */
+        .code-box {
+            font-family: var(--font-code);
+            background-color: #1b1c1d;
+            color: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        .diff-del {
+            background-color: rgba(220, 38, 38, 0.2);
+            color: #f87171;
+            text-decoration: line-through;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .diff-add {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .token-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 3px;
+        }
+
+        .token-hoax {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+
+        .token-valid {
+            background-color: #d1fae5;
+            color: #047857;
+            border: 1px solid #6ee7b7;
+        }
+
+        .token-neutral {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* CONFUSION MATRIX INTERACTIVE HEATMAP */
+        .cm-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr 1fr;
+            grid-template-rows: 50px 1fr 1fr;
+            gap: 10px;
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        .cm-cell {
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            border: 1.5px solid transparent;
+        }
+
+        .cm-cell:hover {
+            transform: scale(1.02);
+        }
+
+        .cm-header-top {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .cm-header-side {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-right: 12px;
+        }
+
+        .cm-tn {
+            background-color: #e6f8f0;
+            border-color: #82f8c8;
+            color: #00513a;
+        }
+
+        .cm-tp {
+            background-color: #e6f8f0;
+            border-color: #82f8c8;
+            color: #00513a;
+        }
+
+        .cm-fp {
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .cm-fn {
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .cm-number {
+            font-size: 1.9rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 4px;
+        }
+
+        .cm-title {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .cm-subtitle {
+            font-size: 0.72rem;
+            opacity: 0.8;
+        }
+
+        /* Metric Mini Card */
+        .metric-mini-card {
+            background: #ffffff;
+            border: 1px solid var(--neutral-border);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            text-align: center;
+            height: 100%;
+        }
+
+        .metric-mini-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--neutral-darkest);
+            letter-spacing: -0.02em;
+        }
+
+        .metric-mini-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Nav Pills Custom */
+        .nav-pills-custom .nav-link {
+            border-radius: 9999px;
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #4b5563;
+            background: #f3f4f6;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-pills-custom .nav-link:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .nav-pills-custom .nav-link.active {
+            background: #006c4e;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 108, 78, 0.25);
+        }
+
+        .flow-card-node {
+            background: #ffffff;
+            border: 1.5px solid var(--neutral-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .flow-card-node:hover {
+            border-color: var(--primary-base);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 108, 78, 0.1);
+        }
+
+        .flow-step-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--primary-subtle);
+            color: var(--primary);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <i class="bi bi-shield-check fs-5"></i>
+        </div>
+        <div>
+            <div class="brand-title">HoaxCheck</div>
+            <div class="brand-subtitle">AI & ML Verification Studio</div>
+        </div>
+    </div>
+
+    <div class="nav flex-column mb-auto">
+        <a href="/detector" class="nav-item-custom">
+            <i class="bi bi-cpu fs-5"></i>
+            <span>Cek Hoaks (Live ML)</span>
+        </a>
+        <a href="/pipeline" class="nav-item-custom active">
+            <i class="bi bi-diagram-3-fill fs-5"></i>
+            <span>Visualisasi Pipeline ML</span>
+        </a>
+        <a href="/benchmark" class="nav-item-custom">
+            <i class="bi bi-graph-up-arrow fs-5"></i>
+            <span>Benchmark Riset ML</span>
+        </a>
+        <a href="/?tab=dataset" class="nav-item-custom">
+            <i class="bi bi-folder2-open fs-5"></i>
+            <span>Kelola Dataset</span>
+        </a>
+        <a href="/?tab=scraper" class="nav-item-custom">
+            <i class="bi bi-newspaper fs-5"></i>
+            <span>Scraper Berita Valid</span>
+        </a>
+    </div>
+
+    <div class="pt-3 border-top border-secondary border-opacity-10 text-muted small">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="bg-success rounded-circle" style="width: 8px; height: 8px; background-color: var(--primary-base) !important;"></div>
+            <span class="text-white small fw-semibold">Pipeline Aktif</span>
+        </div>
+        <div style="font-size: 11px; color: #797879;">Preprocessing → Feature → 9 Model → Evaluasi</div>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge badge-primary-ds rounded-pill px-3 py-1" style="font-size: 11px;">END-TO-END ML WORKFLOW</span>
+                <div class="ds-accent-lines">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <h2 class="hero-title-gradient mb-1">Visualisasi Pipeline: Preprocessing s/d Evaluasi Model</h2>
+            <p class="text-muted small mb-0">Eksplorasi interaktif alur pemrosesan data, pembersihan anti-data leakage, ekstraksi fitur TF-IDF/Biner, komparasi 9 model, hingga confusion matrix empiris.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="#simulatorSection" class="btn btn-ds-primary">
+                <i class="bi bi-play-circle-fill me-1"></i> Simulator Interaktif
+            </a>
+            <a href="#evaluasiSection" class="btn btn-ds-outlined">
+                <i class="bi bi-grid-3x3 me-1"></i> Confusion Matrix
+            </a>
+        </div>
+    </div>
+
+    <!-- Pipeline Visual Stepper / Interactive Anchor Navigation -->
+    <div class="card-clean p-4 mb-4">
+        <div class="pipeline-stepper mb-0">
+            <a href="#tahap1" class="step-node active">
+                <div class="step-circle"><i class="bi bi-database-fill-gear"></i></div>
+                <div class="step-label">1. Ingestion & Balance</div>
+                <div class="step-sublabel">4,176 Hoaks vs 878 Valid</div>
+            </a>
+            <a href="#tahap2" class="step-node active">
+                <div class="step-circle"><i class="bi bi-funnel-fill"></i></div>
+                <div class="step-label">2. Preprocessing & Leakage</div>
+                <div class="step-sublabel">Eliminasi Tag & URL</div>
+            </a>
+            <a href="#tahap3" class="step-node active">
+                <div class="step-circle"><i class="bi bi-cpu"></i></div>
+                <div class="step-label">3. Feature Engineering</div>
+                <div class="step-sublabel">TF-IDF & Binarization</div>
+            </a>
+            <a href="#tahap4" class="step-node active">
+                <div class="step-circle"><i class="bi bi-diagram-2"></i></div>
+                <div class="step-label">4. 9 Model Training</div>
+                <div class="step-sublabel">NB, SVM & KNN</div>
+            </a>
+            <a href="#tahap5" class="step-node active">
+                <div class="step-circle"><i class="bi bi-clipboard-data-fill"></i></div>
+                <div class="step-label">5. Model Evaluation</div>
+                <div class="step-sublabel">Confusion Matrix & F1</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- STATS OVERVIEW CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-mini-card">
+                <div class="metric-mini-label mb-1">Total Hoaks Komdigi</div>
+                <div class="metric-mini-value text-danger">{{ stats.total_hoax_raw | default(4176) }}</div>
+                <div class="small text-muted mt-1">Aduan klarifikasi masyarakat</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-mini-card">
+                <div class="metric-mini-label mb-1">Berita Valid Kredibel</div>
+                <div class="metric-mini-value text-success">{{ stats.total_valid_raw | default(878) }}</div>
+                <div class="small text-muted mt-1">Antara News, CNN, CNBC</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-mini-card">
+                <div class="metric-mini-label mb-1">Balanced Dataset 1:1</div>
+                <div class="metric-mini-value" style="color: var(--primary);">{{ stats.balanced_total | default(1756) }}</div>
+                <div class="small text-muted mt-1">878 Hoaks : 878 Valid</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-mini-card">
+                <div class="metric-mini-label mb-1">Kosakata Model (Vocab)</div>
+                <div class="metric-mini-value text-info">{{ stats.vocab_size | default(3006) }}</div>
+                <div class="small text-muted mt-1">Fitur kata & Laplace Prior</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 1: LIVE INTERACTIVE PIPELINE SIMULATOR -->
+    <!-- ================================================================= -->
+    <div class="card-clean mb-4" id="simulatorSection">
+        <div class="card-header-clean d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-circle p-2 bg-success text-white" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background-color: var(--primary) !important;">
+                    <i class="bi bi-play-fill"></i>
+                </span>
+                <span class="fs-5">Simulator Interaktif: Jalankan Teks Melalui Seluruh Pipeline</span>
+            </div>
+            <span class="badge badge-secondary-ds rounded-pill px-3 py-1">Live Step-by-Step Inspection</span>
+        </div>
+        <div class="card-body p-4">
+            <p class="text-muted small mb-3">
+                Uji teks klaim berita di bawah ini. Anda dapat memilih salah satu contoh preset siap pakai atau mengetikkan teks sendiri untuk melihat transformasi teks di setiap tahapan, mulai dari token mentah hingga klasifikasi probabilitas.
+            </p>
+
+            <!-- Preset buttons -->
+            <div class="mb-3">
+                <span class="small fw-bold text-muted d-block mb-2"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Pilih Contoh Preset Siap Pakai:</span>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="loadPreset('phishing')">
+                        <i class="bi bi-link-45deg"></i> 1. Phishing & Bantuan Bansos (Hoaks Ekstrem)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="loadPreset('urgency')">
+                        <i class="bi bi-exclamation-triangle"></i> 2. Pesan Berantai WhatsApp (Pola Urgensi Palsu)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="loadPreset('antara')">
+                        <i class="bi bi-check2-circle"></i> 3. Berita Resmi Antara News (Valid Jurnalistik)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="loadPreset('bi')">
+                        <i class="bi bi-bank"></i> 4. Siaran Kebijakan Bank Indonesia (Valid Formal)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Input Form -->
+            <div class="row g-3 align-items-end mb-4">
+                <div class="col-lg-8">
+                    <label for="pipelineInputText" class="form-label fw-bold small text-dark mb-1">
+                        Input Teks Klaim Berita (Bisa mengandung tag [HOAKS], link URL, atau simbol):
+                    </label>
+                    <textarea id="pipelineInputText" class="form-control" rows="3" placeholder="Masukkan teks di sini..." style="border-radius: 12px; font-size: 0.92rem;"></textarea>
+                </div>
+                <div class="col-lg-4">
+                    <div class="mb-2">
+                        <label for="pipelineModelSelect" class="form-label fw-bold small text-dark mb-1">Pilih Model Penguji:</label>
+                        <select id="pipelineModelSelect" class="form-select" style="border-radius: 10px;">
+                            <option value="bernoulli" selected>Bernoulli Naive Bayes (Akurasi 92.33% - Juara)</option>
+                            <option value="multinomial">Multinomial Naive Bayes (Akurasi 89.20%)</option>
+                            <option value="svm">Support Vector Machine Linear (Akurasi 89.00%)</option>
+                            <option value="knn">K-Nearest Neighbors Cosine (Akurasi 82.39%)</option>
+                        </select>
+                    </div>
+                    <button id="btnRunPipeline" class="btn btn-ds-primary w-100 justify-content-center" onclick="runPipelineSimulation()">
+                        <i class="bi bi-play-fill fs-5"></i> Jalankan Visualisasi Pipeline
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pipeline Results Visual Container -->
+            <div id="pipelineOutputContainer" style="display: none;">
+                <hr class="my-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>Hasil Dekomposisi 6 Tahap Pipeline:
+                    </h5>
+                    <div id="execTimeBadge" class="badge badge-tertiary-ds px-3 py-1">Inferensi: 0.0 ms</div>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Step 1: Input Raw -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border rounded-4 p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary rounded-pill">Tahap 1: Input Mentah</span>
+                                <span id="rawCharCount" class="small text-muted">0 Karakter / 0 Kata</span>
+                            </div>
+                            <div id="rawTextDisplay" class="p-3 bg-white border rounded-3 small font-monospace text-wrap" style="max-height: 120px; overflow-y: auto;">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Preprocessing Diff -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border rounded-4 p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary rounded-pill">Tahap 2: Anti-Leakage & Cleaning</span>
+                                <span id="cleanReductionBadge" class="badge badge-primary-ds rounded-pill">Reduksi: 0%</span>
+                            </div>
+                            <div id="cleaningDiffDisplay" class="p-3 bg-white border rounded-3 small font-monospace text-wrap" style="max-height: 120px; overflow-y: auto;">-</div>
+                            <div class="mt-2" id="leakageAlertContainer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Tokenization & Vocab Matching -->
+                    <div class="col-12">
+                        <div class="card border rounded-4 p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-info text-dark rounded-pill">Tahap 3: Tokenisasi & Pencocokan Kosakata (Vocabulary)</span>
+                                <span id="tokenStatsBadge" class="small text-muted">0 Token Unik</span>
+                            </div>
+                            <div id="tokensContainer" class="p-3 bg-white border rounded-3" style="max-height: 140px; overflow-y: auto;">
+                                <!-- Tokens pills injected here -->
+                            </div>
+                            <div class="d-flex gap-3 small text-muted mt-2">
+                                <span><span class="badge token-hoax">Merah</span> Bobot Sinyal Hoaks (&gt; +0.4)</span>
+                                <span><span class="badge token-valid">Hijau</span> Bobot Sinyal Valid (&lt; -0.4)</span>
+                                <span><span class="badge token-neutral">Abu</span> Netral / OOV</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Linguistic Heuristics Patterns -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border rounded-4 p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-warning text-dark rounded-pill">Tahap 4: Pola Indikator Linguistik NLP</span>
+                                <span id="patternScoreBadge" class="badge bg-warning text-dark rounded-pill">Offset: 0.0</span>
+                            </div>
+                            <div id="patternsContainer" class="p-2" style="min-height: 120px;">
+                                <!-- Patterns list -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 & 6: Mathematical Aggregation & Final Classification -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border rounded-4 p-3 bg-white shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-success rounded-pill">Tahap 5 & 6: Probabilitas Sigmoid & Putusan</span>
+                                <span id="finalModelLabel" class="small fw-semibold text-muted">Bernoulli NB</span>
+                            </div>
+                            <div class="p-3 rounded-3 mb-2" id="decisionBanner" style="background: #f8fafc; border: 1.5px solid #e2e8f0;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div>
+                                        <div class="small text-muted fw-bold">KLASIFIKASI MODEL:</div>
+                                        <div id="decisionLabel" class="fs-3 fw-bold">-</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small text-muted fw-bold">TINGKAT KEYAKINAN:</div>
+                                        <div id="confidenceVal" class="fs-3 fw-bold text-success">0%</div>
+                                    </div>
+                                </div>
+                                <div class="progress" style="height: 10px; border-radius: 6px;">
+                                    <div id="progressHoax" class="progress-bar bg-danger" role="progressbar" style="width: 50%"></div>
+                                    <div id="progressValid" class="progress-bar bg-success" role="progressbar" style="width: 50%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between small text-muted mt-1">
+                                    <span id="labelProbHoax">Prob. Hoaks: 0%</span>
+                                    <span id="labelProbValid">Prob. Valid: 0%</span>
+                                </div>
+                            </div>
+                            <div class="small text-muted" id="mathDetailsText">
+                                <!-- Calculation steps -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 2: END-TO-END PIPELINE ARCHITECTURE FLOWCHART -->
+    <!-- ================================================================= -->
+    <div class="card-clean mb-4" id="tahap1">
+        <div class="card-header-clean d-flex justify-content-between align-items-center">
+            <span class="d-flex align-items-center gap-2">
+                <i class="bi bi-bezier2" style="color: var(--primary);"></i>
+                <span>Arsitektur & Alur Kerja End-to-End Riset Machine Learning</span>
+            </span>
+            <span class="badge bg-light text-muted border rounded-pill">Framework Pipeline Ilmiah</span>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-lg-4 col-md-6">
+                    <div class="flow-card-node h-100">
+                        <div class="flow-step-badge">1</div>
+                        <h6 class="fw-bold mb-1">Koleksi & Konsolidasi Korpus</h6>
+                        <p class="small text-muted mb-2">
+                            Mengintegrasikan <strong>4,176</strong> aduan hoaks tervalidasi dari Komdigi dan <strong>878</strong> berita valid terkini yang di-scrape otomatis via RSS Antara News, CNN, dan CNBC.
+                        </p>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size: 11px;">Hoaks Komdigi</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 11px;">RSS Media Kredibel</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="flow-card-node h-100" id="tahap2">
+                        <div class="flow-step-badge">2</div>
+                        <h6 class="fw-bold mb-1">Preprocessing & Anti-Leakage</h6>
+                        <p class="small text-muted mb-2">
+                            Menghilangkan tag buatan seperti <code>[HOAKS]</code> dan <code>(DISINFORMASI)</code> agar model tidak mengalami <em>data leakage</em>, membersihkan URL, regex simbol, dan case-folding.
+                        </p>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-light text-dark border rounded-pill" style="font-size: 11px;">Regex Stripping</span>
+                            <span class="badge bg-light text-dark border rounded-pill" style="font-size: 11px;">Case Folding</span>
+                            <span class="badge bg-light text-dark border rounded-pill" style="font-size: 11px;">Noise Filtering</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="flow-card-node h-100" id="tahap3">
+                        <div class="flow-step-badge">3</div>
+                        <h6 class="fw-bold mb-1">Penyeimbangan & Stratified Split</h6>
+                        <p class="small text-muted mb-2">
+                            Sampling data 1:1 seimbang (878 hoaks : 878 valid = 1,756 sampel). Pembagian <strong>80% Data Latih</strong> (1,404 baris) dan <strong>20% Data Uji</strong> (352 baris) secara terstratifikasi.
+                        </p>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge badge-primary-ds rounded-pill" style="font-size: 11px;">Rasio 1:1 Balanced</span>
+                            <span class="badge badge-tertiary-ds rounded-pill" style="font-size: 11px;">Stratified 80/20</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="flow-card-node h-100">
+                        <div class="flow-step-badge">4</div>
+                        <h6 class="fw-bold mb-1">Vektorisasi Fitur (TF-IDF & Biner)</h6>
+                        <p class="small text-muted mb-2">
+                            Ekstraksi fitur Unigram & Bigram dengan <code>max_features=1500</code>. Transformasi biner kehadiran kata (<em>binary presence</em>) untuk Bernoulli Naive Bayes.
+                        </p>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-light text-dark border rounded-pill" style="font-size: 11px;">TF-IDF (1, 2) Gram</span>
+                            <span class="badge bg-light text-dark border rounded-pill" style="font-size: 11px;">Bernoulli Binarize</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="flow-card-node h-100" id="tahap4">
+                        <div class="flow-step-badge">5</div>
+                        <h6 class="fw-bold mb-1">Pelatihan 9 Model Klasifikasi</h6>
+                        <p class="small text-muted mb-2">
+                            Eksplorasi 3 rumpun algoritma: <strong>Naive Bayes</strong> (Bernoulli, Multinomial, Gaussian), <strong>SVM</strong> (Cosine, Euclidean, Manhattan), dan <strong>KNN</strong> (k=5).
+                        </p>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 11px;">3 Probabilistik</span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill" style="font-size: 11px;">3 Hyperplane SVM</span>
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill" style="font-size: 11px;">3 Distance KNN</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="flow-card-node h-100" id="tahap5">
+                        <div class="flow-step-badge">6</div>
+                        <h6 class="fw-bold mb-1">Evaluasi Empiris & Deployment</h6>
+                        <p class="small text-muted mb-2">
+                            Validasi matriks konfusi (TP, FP, TN, FN), Akurasi, Precision, Recall, F1-Score, Waktu Inferensi, dan Konsumsi RAM. Bernoulli NB terpilih sebagai model operasional terbaik.
+                        </p>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge badge-primary-ds rounded-pill" style="font-size: 11px;">Akurasi 92.33%</span>
+                            <span class="badge badge-secondary-ds rounded-pill" style="font-size: 11px;">Inferensi 7.5 ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 3: PREPROCESSING & FEATURE EXTRACTION DEEP DIVE -->
+    <!-- ================================================================= -->
+    <div class="row g-3 mb-4">
+        <!-- Visualisasi Top Kata Paling Berpengaruh -->
+        <div class="col-lg-7">
+            <div class="card-clean mb-0">
+                <div class="card-header-clean d-flex flex-wrap justify-content-between align-items-center py-2 px-3 gap-2">
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-bar-chart-steps" style="color: var(--primary);"></i>
+                        <span class="fw-bold">Top Kata Berpengaruh (Log-Odds Ratio)</span>
+                    </span>
+                    <div class="btn-group btn-group-sm" role="group" id="filterTopWordsGroup">
+                        <button type="button" class="btn btn-outline-secondary active btn-sm py-0 px-2" onclick="setTopWordsFilter('all')">Semua (10)</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" onclick="setTopWordsFilter('hoax')">Hoaks</button>
+                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" onclick="setTopWordsFilter('valid')">Valid</button>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <p class="text-muted mb-2" style="font-size: 0.78rem; line-height: 1.4;">
+                        Bobot log-likelihood: <code style="font-family: var(--font-code);">w = ln(P(kata|Hoaks)/P(kata|Valid))</code>. Merah = pemicu hoaks (+), Hijau = fakta jurnalistik (-).
+                    </p>
+                    <div style="position: relative; height: 210px; width: 100%; overflow: hidden;">
+                        <canvas id="topWordsChart"></canvas>
+                    </div>
+                    <!-- Chips kata ringkas -->
+                    <div class="d-flex flex-wrap gap-1 mt-2 pt-2 border-top" id="topWordsBadgesContainer" style="max-height: 52px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analisis Preprocessing & Reduksi Noise -->
+        <div class="col-lg-5">
+            <div class="card-clean mb-0">
+                <div class="card-header-clean d-flex justify-content-between align-items-center py-2 px-3">
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-funnel" style="color: var(--primary);"></i>
+                        <span class="fw-bold">Statistik Preprocessing Teks</span>
+                    </span>
+                    <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">Noise Filtering</span>
+                </div>
+                <div class="card-body p-3">
+                    <div class="mb-2" style="position: relative; height: 125px; width: 100%; overflow: hidden;">
+                        <canvas id="lengthDistChart"></canvas>
+                    </div>
+
+                    <div class="p-2 bg-light rounded-3 border mb-2" style="font-size: 0.8rem;">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="fw-bold text-dark">Rata-rata Karakter:</span>
+                            <span class="badge bg-white text-dark border">65.6 → 56.2 Char</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 85.7%" title="Panjang Bersih"></div>
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: 14.3%" title="Noise Dibuang"></div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 10.5px;">
+                            <span>Teks Bersih (85.7%)</span>
+                            <span>Noise Tereliminasi (14.3%)</span>
+                        </div>
+                    </div>
+
+                    <!-- Callout Anti-Leakage Compact -->
+                    <div class="p-2 rounded-3" style="background-color: var(--tertiary-subtle); border: 1px solid var(--tertiary-border);">
+                        <div class="d-flex gap-2 align-items-start">
+                            <i class="bi bi-shield-exclamation text-primary" style="font-size: 1.1rem; line-height: 1;"></i>
+                            <div style="font-size: 11px; line-height: 1.35; color: #374151;">
+                                <strong style="color: var(--tertiary);">Pencegahan Data Leakage:</strong> Tag <code>[HOAKS]</code> dan <code>(DISINFORMASI)</code> dibuang di awal agar model tidak sekadar menghafal label buatan komdigi.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 4: INTERACTIVE MODEL EVALUATION & CONFUSION MATRIX -->
+    <!-- ================================================================= -->
+    <div class="card-clean mb-4" id="evaluasiSection">
+        <div class="card-header-clean d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-grid-3x3" style="color: var(--primary);"></i>
+                <span class="fs-5">Evaluasi Model & Confusion Matrix Interaktif</span>
+            </div>
+            <span class="small text-muted">Data Evaluasi Berdasarkan <code>Pengujian_Supervised/*.ipynb</code></span>
+        </div>
+        <div class="card-body p-4">
+            <p class="text-muted small mb-3">
+                Pilih model di bawah ini untuk melihat perincian <strong>Confusion Matrix</strong> aktual, rasio True Positive/Negative, tingkat kesalahan tipe I/II, serta metrik performa komprehensif.
+            </p>
+
+            <!-- Model Selector Nav Pills -->
+            <div class="nav nav-pills nav-pills-custom mb-4" id="modelSelectPills">
+                {% for key, m in models_data.items() %}
+                <button type="button" class="nav-link {% if key == 'NB_Bernoulli' %}active{% endif %}" onclick="selectModelEvaluation('{{ key }}')">
+                    {% if m.rank == 1 %}<i class="bi bi-trophy-fill text-warning me-1"></i>{% endif %}
+                    {{ m.name }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="row g-4 align-items-center">
+                <!-- Confusion Matrix Visual Heatmap -->
+                <div class="col-lg-6">
+                    <div class="p-3 bg-light rounded-4 border">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold small text-dark"><i class="bi bi-table me-1"></i>Matriks Konfusi (Confusion Matrix):</span>
+                            <span id="cmTotalBadge" class="badge bg-secondary rounded-pill">Total Sampel Uji: 352</span>
+                        </div>
+
+                        <!-- 2x2 Heatmap -->
+                        <div class="cm-grid">
+                            <div></div>
+                            <div class="cm-header-top">Prediksi VALID (0)</div>
+                            <div class="cm-header-top">Prediksi HOAKS (1)</div>
+
+                            <div class="cm-header-side">Aktual VALID (0)</div>
+                            <div class="cm-cell cm-tn" id="cellTN">
+                                <div class="cm-number" id="valTN">155</div>
+                                <div class="cm-title">True Negative (TN)</div>
+                                <div class="cm-subtitle" id="pctTN">44.0% Tepat Valid</div>
+                            </div>
+                            <div class="cm-cell cm-fp" id="cellFP">
+                                <div class="cm-number" id="valFP">21</div>
+                                <div class="cm-title">False Positive (FP)</div>
+                                <div class="cm-subtitle" id="pctFP">6.0% Type I Error</div>
+                            </div>
+
+                            <div class="cm-header-side">Aktual HOAKS (1)</div>
+                            <div class="cm-cell cm-fn" id="cellFN">
+                                <div class="cm-number" id="valFN">6</div>
+                                <div class="cm-title">False Negative (FN)</div>
+                                <div class="cm-subtitle" id="pctFN">1.7% Type II Error</div>
+                            </div>
+                            <div class="cm-cell cm-tp" id="cellTP">
+                                <div class="cm-number" id="valTP">170</div>
+                                <div class="cm-title">True Positive (TP)</div>
+                                <div class="cm-subtitle" id="pctTP">48.3% Tepat Hoaks</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-muted mt-3 px-3" style="font-size: 11px;">
+                            <span><i class="bi bi-square-fill text-success me-1"></i>Prediksi Benar (TN & TP)</span>
+                            <span><i class="bi bi-square-fill text-danger me-1"></i>Prediksi Meleset (FP & FN)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Metrics & Model Insight -->
+                <div class="col-lg-6">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span id="activeModelBadge" class="badge badge-primary-ds rounded-pill px-3 py-1">Champion PBL #1</span>
+                        <span id="activeModelCategory" class="badge bg-light text-muted border rounded-pill">Probabilistic</span>
+                    </div>
+                    <h4 id="activeModelTitle" class="fw-bold mb-2">Bernoulli Naive Bayes</h4>
+                    <p id="activeModelDesc" class="text-muted small mb-3" style="line-height: 1.6;">
+                        Model klasifikasi terbaik dengan akurasi 92.33%. Sangat unggul karena hanya memeriksa kemunculan biner kata provokatif (ada/tidak ada) tanpa terdistorsi panjang berita.
+                    </p>
+
+                    <!-- Metrics Grid -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 text-center border">
+                                <div class="small text-muted">Akurasi</div>
+                                <div id="metricAcc" class="fs-4 fw-bold" style="color: var(--primary);">92.33%</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 text-center border">
+                                <div class="small text-muted">F1-Score Macro</div>
+                                <div id="metricF1" class="fs-4 fw-bold">0.9232</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 text-center border">
+                                <div class="small text-muted">Waktu Eksekusi</div>
+                                <div id="metricTime" class="fs-4 fw-bold">7.5 ms</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 text-center border">
+                                <div class="small text-muted">Precision Macro</div>
+                                <div id="metricPrec" class="fs-5 fw-bold">0.9264</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 text-center border">
+                                <div class="small text-muted">Recall Macro</div>
+                                <div id="metricRec" class="fs-5 fw-bold">0.9233</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 text-center border">
+                                <div class="small text-muted">Konsumsi RAM</div>
+                                <div id="metricRam" class="fs-5 fw-bold">0.39 MB</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radar / Multi-Metric Comparative Chart -->
+            <hr class="my-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-compass me-2" style="color: var(--primary);"></i>Komparasi Trade-Off Akurasi vs Kecepatan vs Efisiensi RAM (9 Model):</h6>
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <div style="position: relative; height: 210px; width: 100%; overflow: hidden;">
+                        <canvas id="allModelsComparisonChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100 p-3 bg-light border rounded-3">
+                        <div class="fw-bold small mb-2 text-dark">Kesimpulan Ilmiah Evaluasi Model:</div>
+                        <ul class="small text-muted ps-3 mb-0" style="line-height: 1.6;">
+                            <li class="mb-2"><strong>Bernoulli NB Pemenang Mutlak:</strong> Representasi kemunculan kata biner (0 atau 1) mengisolasi kata provokatif hoaks secara jauh lebih bersih dibandingkan pembobotan frekuensi absolut.</li>
+                            <li class="mb-2"><strong>Penurunan Drastis pada KNN Manhattan:</strong> Jatuh ke akurasi 50% akibat fenomena <em>Curse of Dimensionality</em> pada ruang vektor 1,500 fitur spasial.</li>
+                            <li><strong>Latensi Eksekusi SVM 100x Lebih Lambat:</strong> Meskipun akurasi SVM Linear mencapai 89%, komputasi hyperplane memerlukan 849.9 ms dibandingkan Bernoulli yang hanya 7.5 ms.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+// Master Data Models dari Backend Flask
+const modelsData = {{ models_data | tojson }};
+const topHoaxData = {{ sorted_hoax | tojson }};
+const topValidData = {{ sorted_valid | tojson }};
+
+// Preset Contoh Teks
+const presets = {
+    phishing: "[HOAKS] Bantuan Sosial Tunai Rp 2.500.000 dari Kementerian Sosial segera cair serentak hari ini juga! Daftarkan NIK Anda sebelum kuota habis melalui tautan resmi bit.ly/bansos-kemensos-2026 viralkan ke grup wa!!!",
+    urgency: "Peringatan darurat bagi seluruh nasabah bank! Sebelum dihapus pihak tertentu, segera amankan rekening Anda dengan klik wa.me/628123456789. Teruskan pesan ini ke semua keluarga Anda sekarang juga!",
+    antara: "Badan Pusat Statistik (BPS) mencatat neraca perdagangan Indonesia pada bulan Oktober 2026 kembali mencatatkan surplus sebesar 2,48 miliar dolar AS. Menteri Koordinator Perekonomian menegaskan stabilitas ekspor nonmigas tetap solid.",
+    bi: "Bank Indonesia mengumumkan keputusan Rapat Dewan Gubernur (RDG) untuk mempertahankan BI 7-Day Reverse Repo Rate pada level 6,00 persen guna menjaga penguatan nilai tukar rupiah dan stabilitas inflasi nasional."
+};
+
+function loadPreset(key) {
+    if (presets[key]) {
+        document.getElementById('pipelineInputText').value = presets[key];
+    }
+}
+
+// Menjalankan Simulasi Pipeline Via REST API
+async function runPipelineSimulation() {
+    const text = document.getElementById('pipelineInputText').value;
+    const model = document.getElementById('pipelineModelSelect').value;
+    const btn = document.getElementById('btnRunPipeline');
+
+    if (!text.trim()) {
+        alert("Silakan masukkan teks klaim berita terlebih dahulu.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>Memproses Pipeline...`;
+
+    try {
+        const resp = await fetch('/api/pipeline/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text, model: model })
+        });
+        const data = await resp.json();
+
+        if (data.status === 'success') {
+            renderSimulationOutput(data);
+        } else {
+            alert(data.error || "Terjadi kesalahan pemrosesan.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Gagal menghubungi server inferensi.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="bi bi-play-fill fs-5"></i> Jalankan Visualisasi Pipeline`;
+    }
+}
+
+function renderSimulationOutput(d) {
+    document.getElementById('pipelineOutputContainer').style.display = 'block';
+
+    // Execution time & Step 1
+    document.getElementById('execTimeBadge').innerText = `Inferensi: ${d.execution_ms} ms (${d.model_label})`;
+    document.getElementById('rawCharCount').innerText = `${d.raw_length} Karakter / ${d.raw_word_count} Kata`;
+    document.getElementById('rawTextDisplay').innerText = d.raw_text;
+
+    // Step 2 Cleaning
+    document.getElementById('cleanReductionBadge').innerText = `Reduksi Noise: ${d.step_cleaning.reduction_percent}%`;
+    document.getElementById('cleaningDiffDisplay').innerText = d.step_cleaning.cleaned_text;
+
+    const alertBox = document.getElementById('leakageAlertContainer');
+    alertBox.innerHTML = '';
+    if (d.step_leakage.detected && d.step_leakage.detected.length > 0) {
+        alertBox.innerHTML += `<div class="badge bg-danger-subtle text-danger border border-danger-subtle p-2 w-100 text-start mb-1">
+            <i class="bi bi-exclamation-octagon-fill me-1"></i> <strong>Anti-Leakage Aktif:</strong> Ditemukan & dihapus tag: ${d.step_leakage.detected.join(', ')}
+        </div>`;
+    }
+    if (d.step_urls.detected_urls && d.step_urls.detected_urls.length > 0) {
+        alertBox.innerHTML += `<div class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle p-2 w-100 text-start">
+            <i class="bi bi-link-45deg me-1"></i> Tautan Dihapus: ${d.step_urls.detected_urls.join(', ')}
+        </div>`;
+    }
+
+    // Step 3 Tokens
+    document.getElementById('tokenStatsBadge').innerText = `${d.unique_tokens_count} Token Unik (${d.tokens.length} Total Kata)`;
+    const tokensDiv = document.getElementById('tokensContainer');
+    tokensDiv.innerHTML = '';
+    d.vocab_matches.forEach(item => {
+        let cls = 'token-neutral';
+        let icon = '';
+        if (item.impact === 'hoax') {
+            cls = 'token-hoax';
+            icon = `<i class="bi bi-arrow-up-right"></i>`;
+        } else if (item.impact === 'valid') {
+            cls = 'token-valid';
+            icon = `<i class="bi bi-arrow-down-right"></i>`;
+        }
+        tokensDiv.innerHTML += `<span class="token-pill ${cls}">
+            ${item.word} <span class="opacity-75" style="font-size:10px;">(${item.weight > 0 ? '+' : ''}${item.weight})</span> ${icon}
+        </span>`;
+    });
+
+    // Step 4 Patterns
+    const patternsDiv = document.getElementById('patternsContainer');
+    patternsDiv.innerHTML = '';
+    document.getElementById('patternScoreBadge').innerText = `Offset Pola: ${d.pattern_score > 0 ? '+' : ''}${d.pattern_score}`;
+    if (d.patterns && d.patterns.length > 0) {
+        d.patterns.forEach(p => {
+            const isH = p.impact === 'hoax';
+            patternsDiv.innerHTML += `<div class="d-flex align-items-center justify-content-between p-2 mb-1 rounded-2 border ${isH ? 'bg-danger-subtle border-danger-subtle text-danger' : 'bg-success-subtle border-success-subtle text-success'} small">
+                <div><strong>${p.name}</strong><br><span class="opacity-75" style="font-size:11px;">${p.desc}</span></div>
+                <span class="badge ${isH ? 'bg-danger' : 'bg-success'} rounded-pill">${p.weight > 0 ? '+' : ''}${p.weight}</span>
+            </div>`;
+        });
+    } else {
+        patternsDiv.innerHTML = `<div class="text-muted small p-2">Tidak ditemukan pola provokatif atau urgensi buatan.</div>`;
+    }
+
+    // Step 5 & 6 Decision
+    const isHoax = d.decision === 'HOAKS';
+    const decisionEl = document.getElementById('decisionLabel');
+    decisionEl.innerText = d.decision;
+    decisionEl.className = `fs-3 fw-bold ${isHoax ? 'text-danger' : 'text-success'}`;
+
+    document.getElementById('confidenceVal').innerText = `${d.confidence}%`;
+    document.getElementById('confidenceVal').className = `fs-3 fw-bold ${isHoax ? 'text-danger' : 'text-success'}`;
+
+    document.getElementById('progressHoax').style.width = `${d.prob_hoax}%`;
+    document.getElementById('progressValid').style.width = `${d.prob_valid}%`;
+    document.getElementById('labelProbHoax').innerText = `Prob. Hoaks: ${d.prob_hoax}%`;
+    document.getElementById('labelProbValid').innerText = `Prob. Valid: ${d.prob_valid}%`;
+
+    document.getElementById('mathDetailsText').innerHTML = `
+        <strong>Kalkulasi Log-Odds:</strong> Skor Kata (${d.word_score}) + Skor Pola (${d.pattern_score}) = <strong>${d.total_score}</strong>.<br>
+        Fungsi Sigmoid: <em>1 / (1 + e<sup>-${d.total_score}</sup>)</em> menghasilkan probabilitas <strong>${isHoax ? d.prob_hoax : d.prob_valid}%</strong>.
+    `;
+
+    // Smooth scroll to output
+    document.getElementById('pipelineOutputContainer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Function to select and render Confusion Matrix for selected model
+function selectModelEvaluation(modelKey) {
+    const m = modelsData[modelKey];
+    if (!m) return;
+
+    // Update active pill button
+    const buttons = document.querySelectorAll('#modelSelectPills button');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    // Update metadata info
+    document.getElementById('activeModelBadge').innerText = `#${m.rank} ${m.badge}`;
+    document.getElementById('activeModelCategory').innerText = m.category;
+    document.getElementById('activeModelTitle').innerText = m.name;
+    document.getElementById('activeModelDesc').innerText = m.description;
+
+    document.getElementById('metricAcc').innerText = `${m.accuracy.toFixed(2)}%`;
+    document.getElementById('metricF1').innerText = m.f1_macro.toFixed(4);
+    document.getElementById('metricTime').innerText = `${m.latency_ms} ms`;
+    document.getElementById('metricPrec').innerText = m.precision_macro.toFixed(4);
+    document.getElementById('metricRec').innerText = m.recall_macro.toFixed(4);
+    document.getElementById('metricRam').innerText = `${m.memory_mb.toFixed(2)} MB`;
+
+    // Update Confusion Matrix Heatmap
+    const cm = m.cm;
+    document.getElementById('cmTotalBadge').innerText = `Total Sampel Uji: ${cm.total}`;
+
+    document.getElementById('valTN').innerText = cm.tn;
+    document.getElementById('pctTN').innerText = `${((cm.tn / cm.total) * 100).toFixed(1)}% Tepat Valid`;
+
+    document.getElementById('valFP').innerText = cm.fp;
+    document.getElementById('pctFP').innerText = `${((cm.fp / cm.total) * 100).toFixed(1)}% Type I Error`;
+
+    document.getElementById('valFN').innerText = cm.fn;
+    document.getElementById('pctFN').innerText = `${((cm.fn / cm.total) * 100).toFixed(1)}% Type II Error`;
+
+    document.getElementById('valTP').innerText = cm.tp;
+    document.getElementById('pctTP').innerText = `${((cm.tp / cm.total) * 100).toFixed(1)}% Tepat Hoaks`;
+}
+
+let topWordsChartInstance = null;
+
+function renderTopWordsBadges(labels, weights, colors) {
+    const container = document.getElementById('topWordsBadgesContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    labels.forEach((word, idx) => {
+        const w = weights[idx];
+        const isH = w > 0;
+        container.innerHTML += `<span class="badge ${isH ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-success-subtle text-success border border-success-subtle'} rounded-pill" style="font-size: 10.5px;">
+            ${word} <strong>(${w > 0 ? '+' : ''}${w})</strong>
+        </span>`;
+    });
+}
+
+function setTopWordsFilter(type) {
+    if (!topWordsChartInstance) return;
+
+    // Update active button state
+    const group = document.getElementById('filterTopWordsGroup');
+    if (group) {
+        group.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        if (type === 'all') group.children[0].classList.add('active');
+        else if (type === 'hoax') group.children[1].classList.add('active');
+        else if (type === 'valid') group.children[2].classList.add('active');
+    }
+
+    let labels = [];
+    let weights = [];
+    let colors = [];
+
+    if (type === 'hoax') {
+        const topH = topHoaxData.slice(0, 8).reverse();
+        labels = topH.map(w => w.word);
+        weights = topH.map(w => w.weight);
+        colors = topH.map(() => '#ba1a1a');
+    } else if (type === 'valid') {
+        const topV = topValidData.slice(0, 8).reverse();
+        labels = topV.map(w => w.word);
+        weights = topV.map(w => w.raw_weight);
+        colors = topV.map(() => '#1ca379');
+    } else {
+        // All: Top 5 valid & Top 5 hoax (total 10 items)
+        const topV = topValidData.slice(0, 5).reverse();
+        const topH = topHoaxData.slice(0, 5).reverse();
+        labels = [...topV.map(w => w.word), ...topH.map(w => w.word)];
+        weights = [...topV.map(w => w.raw_weight), ...topH.map(w => w.weight)];
+        colors = [...topV.map(() => '#1ca379'), ...topH.map(() => '#ba1a1a')];
+    }
+
+    topWordsChartInstance.data.labels = labels;
+    topWordsChartInstance.data.datasets[0].data = weights;
+    topWordsChartInstance.data.datasets[0].backgroundColor = colors;
+    topWordsChartInstance.update();
+
+    renderTopWordsBadges(labels, weights, colors);
+}
+
+// Inisialisasi Charts dengan Chart.js
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Chart Top Kata Log-Odds (Kompak & Terkontrol)
+    const topWordsCanvas = document.getElementById('topWordsChart');
+    if (topWordsCanvas) {
+        const topWordsCtx = topWordsCanvas.getContext('2d');
+        const hoaxWords = topHoaxData.slice(0, 5).reverse();
+        const validWords = topValidData.slice(0, 5).reverse();
+
+        const chartLabels = [...validWords.map(w => w.word), ...hoaxWords.map(w => w.word)];
+        const chartWeights = [...validWords.map(w => w.raw_weight), ...hoaxWords.map(w => w.weight)];
+        const chartColors = [
+            ...validWords.map(() => '#1ca379'),
+            ...hoaxWords.map(() => '#ba1a1a')
+        ];
+
+        topWordsChartInstance = new Chart(topWordsCtx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Bobot Log-Odds (w)',
+                    data: chartWeights,
+                    backgroundColor: chartColors,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const val = ctx.raw;
+                                return `Bobot Sinyal: ${val > 0 ? '+' : ''}${val} (${val > 0 ? 'Indikator Hoaks' : 'Indikator Berita Valid'})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        title: { display: true, text: '← Cenderung Valid  |  Cenderung Hoaks →', font: { weight: 'bold', size: 10 } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { weight: '600', size: 11 } }
+                    }
+                }
+            }
+        });
+
+        renderTopWordsBadges(chartLabels, chartWeights, chartColors);
+    }
+
+    // 2. Chart Distribusi Panjang Teks
+    const lengthDistCtx = document.getElementById('lengthDistChart').getContext('2d');
+    new Chart(lengthDistCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Rata-rata Karakter', 'Rata-rata Kata'],
+            datasets: [
+                {
+                    label: 'Sebelum Preprocessing',
+                    data: [65.6, 9.4],
+                    backgroundColor: '#9ca3af',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Sesudah Preprocessing',
+                    data: [56.2, 8.1],
+                    backgroundColor: '#006c4e',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+            }
+        }
+    });
+
+    // 3. Chart Komparasi Global 9 Model
+    const allModelsCtx = document.getElementById('allModelsComparisonChart').getContext('2d');
+    const modelKeys = Object.keys(modelsData);
+    const modelNames = modelKeys.map(k => modelsData[k].name.replace(' (Cosine Similarity)', '').replace(' (Euclidean Distance)', '').replace(' (Laplacian Distance)', ''));
+    const accuracies = modelKeys.map(k => modelsData[k].accuracy);
+    const f1Scores = modelKeys.map(k => modelsData[k].f1_macro * 100);
+
+    new Chart(allModelsCtx, {
+        type: 'bar',
+        data: {
+            labels: modelNames,
+            datasets: [
+                {
+                    label: 'Akurasi Uji (%)',
+                    data: accuracies,
+                    backgroundColor: '#006c4e',
+                    borderRadius: 6
+                },
+                {
+                    label: 'F1-Score Macro (%)',
+                    data: f1Scores,
+                    backgroundColor: '#78b0e3',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 40,
+                    max: 100,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    title: { display: true, text: 'Persentase (%)' }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 35,
+                        minRotation: 25,
+                        font: { size: 10, weight: '600' }
+                    }
+                }
+            }
+        }
+    });
+
+    // Auto-load preset 1 into simulator on first load
+    loadPreset('phishing');
+});
+</script>
+
+</body>
+</html>

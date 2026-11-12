@@ -116,6 +116,18 @@
     </div>
 
     <div class="nav flex-column mb-auto">
+        <a href="/detector" class="nav-item-custom {% if active_page == 'detector' %}active{% endif %}">
+            <i class="bi bi-shield-shaded fs-5"></i>
+            <span>Cek Hoaks (Live ML)</span>
+        </a>
+        <a href="/pipeline" class="nav-item-custom {% if active_page == 'pipeline' %}active{% endif %}">
+            <i class="bi bi-diagram-3 fs-5"></i>
+            <span>Pipeline Arsitektur ML</span>
+        </a>
+        <a href="/benchmark" class="nav-item-custom {% if active_page == 'benchmark' %}active{% endif %}">
+            <i class="bi bi-graph-up-arrow fs-5"></i>
+            <span>Benchmark Riset ML</span>
+        </a>
         <a href="/dataset" class="nav-item-custom {% if active_page == 'dataset' %}active{% endif %}">
             <i class="bi bi-folder2-open fs-5"></i>
             <span>Kelola Dataset</span>
