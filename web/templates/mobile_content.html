@@ -9,9 +9,6 @@
         <h4 class="fw-bold mb-0" style="color: var(--neutral-darkest); font-size: 1.25rem;">
             Kelola Konten Mobile (CMS)
         </h4>
-        <div class="text-muted" style="font-size: 12px;">
-            Sinkronisasi otomatis konten dinamis ke aplikasi mobile via Supabase.
-        </div>
     </div>
     <div class="d-flex align-items-center gap-2">
         {% if sync_status and sync_status.status == 'connected' and sync_status.type == 'service_role' %}
@@ -121,10 +118,7 @@ CREATE POLICY "Admin full access for app_info" ON public.app_info FOR ALL USING 
     <!-- TAB 1: TIPS LITERASI BERANDA (TipsSection) -->
     <!-- ============================================================== -->
     <div class="tab-pane fade {% if active_tab == 'tips' or not active_tab %}show active{% endif %}" id="tab-tips" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="text-muted small">
-                Kartu tips pencegahan hoaks yang tampil di layar Beranda aplikasi mobile (<code>literacy_tips</code>).
-            </div>
+        <div class="d-flex justify-content-end align-items-center mb-3">
             <button type="button" class="btn-ds-primary" data-bs-toggle="modal" data-bs-target="#modalAddTip">
                 <i class="bi bi-plus-lg"></i> Tambah Tips Baru
             </button>
@@ -401,194 +395,150 @@ CREATE POLICY "Admin full access for app_info" ON public.app_info FOR ALL USING 
 <!-- MODAL: TAMBAH / EDIT TIPS LITERASI -->
 <!-- ============================================================== -->
 <div class="modal fade" id="modalAddTip" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" style="border-radius: 14px;">
-            <div class="modal-header py-2.5 px-3 border-bottom">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 640px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+            <div class="modal-header py-2.5 px-4 border-bottom">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: var(--primary-subtle); color: var(--primary);">
-                        <i class="bi bi-lightbulb-fill"></i>
+                    <span class="rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; background: var(--primary-subtle); color: var(--primary);">
+                        <i class="bi bi-lightbulb-fill" style="font-size: 13px;"></i>
                     </span>
-                    <h6 class="modal-title fw-bold mb-0" id="modalTipTitle" style="font-size: 14px;">Tambah Tips Literasi</h6>
+                    <h6 class="modal-title fw-bold text-dark mb-0" id="modalTipTitle" style="font-size: 14px;">
+                        Tambah Tips Literasi
+                    </h6>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="/mobile-content/tips/save" method="POST">
-                <div class="modal-body p-3">
+                <div class="modal-body p-4">
                     <input type="hidden" name="id" id="tipInputId">
                     <input type="hidden" name="icon_name" id="tipInputIcon" value="fact_check">
                     <input type="hidden" name="icon_color_hex" id="tipInputColor" value="#059669">
                     <input type="hidden" name="icon_bg_hex" id="tipInputBg" value="#D1FAE5">
 
-                    <div class="row g-3">
-                        <!-- KOLOM KIRI: FORM DATA KONTEN -->
-                        <div class="col-lg-6">
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <label class="form-label small text-muted mb-1" style="font-size: 11px;">Nomor Tips:</label>
-                                    <input type="text" name="tip_number" id="tipInputNumber" class="form-control form-control-sm" placeholder="Tips #1" value="Tips #1" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small text-muted mb-1" style="font-size: 11px;">Urutan (Index):</label>
-                                    <input type="number" name="order_index" id="tipInputOrder" class="form-control form-control-sm" value="1" required>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small text-muted mb-1" style="font-size: 11px;">Judul Tips:</label>
-                                    <input type="text" name="title" id="tipInputTitle" class="form-control form-control-sm" placeholder="Periksa sumber informasi..." required>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small text-muted mb-1" style="font-size: 11px;">Deskripsi Tips:</label>
-                                    <textarea name="description" id="tipInputDesc" class="form-control form-control-sm" rows="3" placeholder="Pastikan diterbitkan oleh portal berita resmi..." required></textarea>
-                                </div>
-                                <div class="col-12 pt-1">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" name="is_active" id="tipInputActive" checked>
-                                        <label class="form-check-label small fw-semibold" for="tipInputActive" style="font-size: 12px;">Tampilkan Aktif di Beranda Mobile</label>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- 1. BARIS JUDUL & NOMOR TIPS -->
+                    <div class="row g-2.5 mb-3">
+                        <div class="col-8">
+                            <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Judul Tips:</label>
+                            <input type="text" name="title" id="tipInputTitle" class="form-control form-control-sm" placeholder="Contoh: Periksa sumber informasi resmi..." style="font-size: 12.5px;" required>
                         </div>
-
-                        <!-- KOLOM KANAN: PILIHAN IKON, WARNA & PRATINJAU -->
-                        <div class="col-lg-6">
-                            <!-- 1. PILIH IKON VISUAL -->
-                            <div class="mb-2.5">
-                                <label class="form-label small text-muted mb-1 fw-bold" style="font-size: 11px;">
-                                    <i class="bi bi-grid-fill text-success me-1"></i>Pilih Ikon Visual:
-                                </label>
-                                <div class="d-flex flex-wrap gap-1" id="iconPickerGrid">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn active py-1 px-2 d-flex align-items-center gap-1" data-icon="fact_check" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">fact_check</span>
-                                        <span>Cek Fakta</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="campaign" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">campaign</span>
-                                        <span>Waspada</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="date_range" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">date_range</span>
-                                        <span>Waktu/Rilis</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="search" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
-                                        <span>Telusuri</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="verified" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
-                                        <span>Resmi</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="psychology" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">psychology</span>
-                                        <span>Logika/AI</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="lightbulb" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">lightbulb</span>
-                                        <span>Tips/Ide</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="menu_book" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span>
-                                        <span>Pedoman</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="link" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">link</span>
-                                        <span>Tautan</span>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary icon-picker-btn py-1 px-2 d-flex align-items-center gap-1" data-icon="shield" style="font-size: 11px; border-radius: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">shield</span>
-                                        <span>Keamanan</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 2. PILIH TEMA WARNA PRESET -->
-                            <div class="mb-2.5">
-                                <label class="form-label small text-muted mb-1 fw-bold" style="font-size: 11px;">
-                                    <i class="bi bi-palette-fill text-success me-1"></i>Pilih Tema Warna:
-                                </label>
-                                <div class="d-flex flex-wrap gap-1.5" id="colorPresetContainer">
-                                    <button type="button" class="btn btn-sm color-preset-btn active py-1 px-2 d-flex align-items-center gap-1"
-                                            data-color="#059669" data-bg="#D1FAE5" style="border: 1.5px solid #059669; background: #D1FAE5; color: #059669; font-size: 10.5px; font-weight: 600; border-radius: 6px;">
-                                        <span class="rounded-circle" style="width: 8px; height: 8px; background: #059669;"></span>
-                                        Hijau Literasi
-                                    </button>
-                                    <button type="button" class="btn btn-sm color-preset-btn py-1 px-2 d-flex align-items-center gap-1"
-                                            data-color="#E11D48" data-bg="#FFE4E6" style="border: 1px solid #e2e8f0; background: #ffffff; color: #E11D48; font-size: 10.5px; font-weight: 600; border-radius: 6px;">
-                                        <span class="rounded-circle" style="width: 8px; height: 8px; background: #E11D48;"></span>
-                                        Merah Waspada
-                                    </button>
-                                    <button type="button" class="btn btn-sm color-preset-btn py-1 px-2 d-flex align-items-center gap-1"
-                                            data-color="#0284C7" data-bg="#E0F2FE" style="border: 1px solid #e2e8f0; background: #ffffff; color: #0284C7; font-size: 10.5px; font-weight: 600; border-radius: 6px;">
-                                        <span class="rounded-circle" style="width: 8px; height: 8px; background: #0284C7;"></span>
-                                        Biru Fakta
-                                    </button>
-                                    <button type="button" class="btn btn-sm color-preset-btn py-1 px-2 d-flex align-items-center gap-1"
-                                            data-color="#D97706" data-bg="#FEF3C7" style="border: 1px solid #e2e8f0; background: #ffffff; color: #D97706; font-size: 10.5px; font-weight: 600; border-radius: 6px;">
-                                        <span class="rounded-circle" style="width: 8px; height: 8px; background: #D97706;"></span>
-                                        Oranye Peringatan
-                                    </button>
-                                    <button type="button" class="btn btn-sm color-preset-btn py-1 px-2 d-flex align-items-center gap-1"
-                                            data-color="#7C3AED" data-bg="#EDE9FE" style="border: 1px solid #e2e8f0; background: #ffffff; color: #7C3AED; font-size: 10.5px; font-weight: 600; border-radius: 6px;">
-                                        <span class="rounded-circle" style="width: 8px; height: 8px; background: #7C3AED;"></span>
-                                        Ungu Investigasi
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 3. LIVE CARD PREVIEW -->
-                            <div>
-                                <label class="form-label small text-muted mb-1 fw-bold" style="font-size: 11px;">
-                                    <i class="bi bi-phone text-success me-1"></i>Pratinjau di Aplikasi Mobile:
-                                </label>
-                                <div id="liveTipPreviewCard" class="card-modern p-2.5 d-flex flex-column justify-content-between" 
-                                     style="border-left: 3.5px solid #059669; background: #ffffff; min-height: 100px;">
-                                    <div>
-                                        <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                            <div class="d-flex align-items-center gap-1.5">
-                                                <div id="previewIconBadge" class="d-flex align-items-center justify-content-center rounded-2" 
-                                                     style="width: 24px; height: 24px; background: #D1FAE5; color: #059669; flex-shrink: 0;">
-                                                    <span id="previewIconSymbol" class="material-symbols-outlined" style="font-size: 16px;">fact_check</span>
-                                                </div>
-                                                <span id="previewTipNumber" class="badge" style="background: #D1FAE5; color: #059669; font-size: 10.5px; font-weight: 700;">
-                                                    Tips #1
-                                                </span>
-                                            </div>
-                                            <span id="previewTipStatus" class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size: 9.5px;">
-                                                Aktif
-                                            </span>
-                                        </div>
-                                        <h6 id="previewTipTitle" class="fw-bold text-dark mb-1" style="font-size: 12.5px;">Judul Tips...</h6>
-                                        <p id="previewTipDesc" class="text-muted mb-0" style="font-size: 11.5px; line-height: 1.35;">Deskripsi tips pencegahan hoaks...</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- OPSI ADVANCED / KUSTOM MANUAL (COLLAPSIBLE) -->
-                            <div class="mt-2">
-                                <a class="text-muted text-decoration-none" data-bs-toggle="collapse" href="#advancedIconSettings" role="button" style="font-size: 10px;">
-                                    <i class="bi bi-sliders me-1"></i>Pengaturan Lanjutan (Hex / Ikon Khusus)
-                                </a>
-                                <div class="collapse mt-1 p-2 bg-light rounded-2 border" id="advancedIconSettings">
-                                    <div class="row g-2">
-                                        <div class="col-6">
-                                            <label class="form-label text-muted mb-0" style="font-size: 10px;">Nama Ikon Material:</label>
-                                            <input type="text" id="manualIconName" class="form-control form-control-sm py-0 px-1.5 font-monospace" style="font-size: 11px;" placeholder="fact_check">
-                                        </div>
-                                        <div class="col-3">
-                                            <label class="form-label text-muted mb-0" style="font-size: 10px;">Ikon Hex:</label>
-                                            <input type="color" id="manualColorPicker" class="form-control form-control-color form-control-sm w-100 p-0" value="#059669">
-                                        </div>
-                                        <div class="col-3">
-                                            <label class="form-label text-muted mb-0" style="font-size: 10px;">Latar Hex:</label>
-                                            <input type="color" id="manualBgPicker" class="form-control form-control-color form-control-sm w-100 p-0" value="#D1FAE5">
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Label / Nomor:</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="tip_number" id="tipInputNumber" class="form-control" placeholder="Tips #1" value="Tips #1" style="font-size: 12px;" required>
+                                <input type="number" name="order_index" id="tipInputOrder" class="form-control text-center" value="1" style="max-width: 48px; font-size: 12px;" title="Urutan" required>
                             </div>
                         </div>
                     </div>
+
+                    <!-- 2. DESKRIPSI -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Deskripsi Tips:</label>
+                        <textarea name="description" id="tipInputDesc" class="form-control form-control-sm" rows="2" placeholder="Tuliskan petunjuk verifikasi hoaks..." style="font-size: 12px; resize: none;" required></textarea>
+                    </div>
+
+                    <!-- 3. PILIHAN IKON & TEMA WARNA (SEBARIS, RAPI, TIDAK SESAK) -->
+                    <div class="row g-2 align-items-center mb-3 pt-1">
+                        <!-- PILIH IKON (6 Icon Tiles + Dropdown) -->
+                        <div class="col-sm-7">
+                            <label class="form-label small fw-semibold text-muted mb-1.5 d-block" style="font-size: 11px;">Pilih Ikon:</label>
+                            <div class="d-flex align-items-center gap-1.5" id="iconPickerRow">
+                                <button type="button" class="icon-tile-btn active" data-icon="fact_check" title="Cek Fakta">
+                                    <span class="material-symbols-outlined">fact_check</span>
+                                </button>
+                                <button type="button" class="icon-tile-btn" data-icon="campaign" title="Waspada / Clickbait">
+                                    <span class="material-symbols-outlined">campaign</span>
+                                </button>
+                                <button type="button" class="icon-tile-btn" data-icon="date_range" title="Tanggal & Waktu">
+                                    <span class="material-symbols-outlined">date_range</span>
+                                </button>
+                                <button type="button" class="icon-tile-btn" data-icon="search" title="Telusuri Sumber">
+                                    <span class="material-symbols-outlined">search</span>
+                                </button>
+                                <button type="button" class="icon-tile-btn" data-icon="verified" title="Verifikasi Resmi">
+                                    <span class="material-symbols-outlined">verified</span>
+                                </button>
+                                <button type="button" class="icon-tile-btn" data-icon="lightbulb" title="Tips / Ide">
+                                    <span class="material-symbols-outlined">lightbulb</span>
+                                </button>
+
+                                <!-- DROPDOWN IKON LAINNYA -->
+                                <div class="dropdown">
+                                    <button class="icon-tile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Ikon Lainnya">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border p-1" style="font-size: 11.5px; border-radius: 8px;">
+                                        <li><a class="dropdown-item py-1 px-2 d-flex align-items-center gap-2 extra-icon-item" href="#" data-icon="psychology"><span class="material-symbols-outlined" style="font-size: 16px;">psychology</span> Logika / AI</a></li>
+                                        <li><a class="dropdown-item py-1 px-2 d-flex align-items-center gap-2 extra-icon-item" href="#" data-icon="menu_book"><span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span> Pedoman Pers</a></li>
+                                        <li><a class="dropdown-item py-1 px-2 d-flex align-items-center gap-2 extra-icon-item" href="#" data-icon="link"><span class="material-symbols-outlined" style="font-size: 16px;">link</span> Tautan Bukti</a></li>
+                                        <li><a class="dropdown-item py-1 px-2 d-flex align-items-center gap-2 extra-icon-item" href="#" data-icon="shield"><span class="material-symbols-outlined" style="font-size: 16px;">shield</span> Keamanan & Privasi</a></li>
+                                        <li><a class="dropdown-item py-1 px-2 d-flex align-items-center gap-2 extra-icon-item" href="#" data-icon="warning"><span class="material-symbols-outlined" style="font-size: 16px;">warning</span> Peringatan Bahaya</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PILIH WARNA (5 Lingkaran Warna) -->
+                        <div class="col-sm-5">
+                            <label class="form-label small fw-semibold text-muted mb-1.5 d-block" style="font-size: 11px;">Tema Warna:</label>
+                            <div class="d-flex align-items-center gap-2" id="colorSwatchRow">
+                                <button type="button" class="color-swatch-btn active" data-color="#059669" data-bg="#D1FAE5" style="background: #059669;" title="Hijau Literasi">
+                                    <i class="bi bi-check-lg text-white"></i>
+                                </button>
+                                <button type="button" class="color-swatch-btn" data-color="#E11D48" data-bg="#FFE4E6" style="background: #E11D48;" title="Merah Waspada">
+                                    <i class="bi bi-check-lg text-white d-none"></i>
+                                </button>
+                                <button type="button" class="color-swatch-btn" data-color="#0284C7" data-bg="#E0F2FE" style="background: #0284C7;" title="Biru Fakta">
+                                    <i class="bi bi-check-lg text-white d-none"></i>
+                                </button>
+                                <button type="button" class="color-swatch-btn" data-color="#D97706" data-bg="#FEF3C7" style="background: #D97706;" title="Oranye Peringatan">
+                                    <i class="bi bi-check-lg text-white d-none"></i>
+                                </button>
+                                <button type="button" class="color-swatch-btn" data-color="#7C3AED" data-bg="#EDE9FE" style="background: #7C3AED;" title="Ungu Investigasi">
+                                    <i class="bi bi-check-lg text-white d-none"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. PRATINJAU KARTU MOBILE (LEGA & BERSIH) -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Pratinjau Kartu di Aplikasi Mobile:</label>
+                        <div id="liveTipPreviewCard" class="p-3 rounded-2" style="border: 1px solid #e2e8f0; border-left: 3.5px solid #059669; background: #ffffff;">
+                            <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <div id="previewIconBadge" class="d-flex align-items-center justify-content-center rounded-2" 
+                                         style="width: 24px; height: 24px; background: #D1FAE5; color: #059669;">
+                                        <span id="previewIconSymbol" class="material-symbols-outlined" style="font-size: 16px;">fact_check</span>
+                                    </div>
+                                    <span id="previewTipNumber" class="badge" style="background: #D1FAE5; color: #059669; font-size: 10.5px; font-weight: 700;">
+                                        Tips #1
+                                    </span>
+                                </div>
+                                <span id="previewTipStatus" class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size: 9.5px;">
+                                    Aktif di Beranda
+                                </span>
+                            </div>
+                            <h6 id="previewTipTitle" class="fw-bold text-dark mb-1" style="font-size: 12.5px;">Judul Tips...</h6>
+                            <p id="previewTipDesc" class="text-muted mb-0" style="font-size: 11.5px; line-height: 1.4;">Deskripsi tips pencegahan hoaks...</p>
+                        </div>
+                    </div>
+
+                    <!-- 5. SWITCH AKTIF -->
+                    <div class="d-flex justify-content-between align-items-center pt-2.5 border-top">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="tipInputActive" checked>
+                            <label class="form-check-label small fw-semibold" for="tipInputActive" style="font-size: 12px;">Tampilkan Aktif di Beranda Mobile</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer py-2 px-3 border-top">
-                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn-ds-primary">Simpan Tips</button>
+                <div class="modal-footer py-2 px-4 border-top d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm btn-light px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn-ds-primary px-3">Simpan Tips</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
                 </div>
             </form>
         </div>
@@ -705,25 +655,57 @@ CREATE POLICY "Admin full access for app_info" ON public.app_info FOR ALL USING 
 
 {% block extra_js %}
 <style>
-.icon-picker-btn {
+.icon-tile-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #ffffff;
     color: #475569;
     transition: all 0.15s ease;
+    cursor: pointer;
+    padding: 0;
 }
-.icon-picker-btn:hover {
+.icon-tile-btn span.material-symbols-outlined {
+    font-size: 20px;
+}
+.icon-tile-btn:hover {
     border-color: #006c4e;
     color: #006c4e;
     background: #f0fdf4;
 }
-.icon-picker-btn.active {
-    background-color: #006c4e !important;
-    color: #ffffff !important;
+.icon-tile-btn.active {
     border-color: #006c4e !important;
-    font-weight: 600;
+    background: #006c4e !important;
+    color: #ffffff !important;
 }
-.color-preset-btn {
+
+.color-swatch-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
     transition: all 0.15s ease;
+    padding: 0;
+}
+.color-swatch-btn:hover {
+    transform: scale(1.15);
+}
+.color-swatch-btn.active {
+    box-shadow: 0 0 0 2.5px #006c4e;
+}
+.color-swatch-btn i {
+    font-size: 13px;
+    color: #ffffff;
+    font-weight: bold;
 }
 </style>
 
@@ -740,17 +722,28 @@ function copySqlSnippet() {
 function selectIcon(iconName) {
     if (!iconName) iconName = 'fact_check';
     const hiddenInput = document.getElementById('tipInputIcon');
-    const manualInput = document.getElementById('manualIconName');
     if (hiddenInput) hiddenInput.value = iconName;
-    if (manualInput) manualInput.value = iconName;
 
-    document.querySelectorAll('.icon-picker-btn').forEach(btn => {
+    let found = false;
+    document.querySelectorAll('.icon-tile-btn:not(.dropdown-toggle)').forEach(btn => {
         if (btn.getAttribute('data-icon') === iconName) {
             btn.classList.add('active');
+            found = true;
         } else {
             btn.classList.remove('active');
         }
     });
+
+    const dropToggle = document.querySelector('#iconPickerRow .dropdown-toggle');
+    if (dropToggle) {
+        if (!found) {
+            dropToggle.classList.add('active');
+            dropToggle.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;">${iconName}</span>`;
+        } else {
+            dropToggle.classList.remove('active');
+            dropToggle.innerHTML = '<i class="bi bi-three-dots"></i>';
+        }
+    }
     updateLivePreview();
 }
 
@@ -760,25 +753,18 @@ function selectColorPreset(colorHex, bgHex) {
 
     const hiddenColor = document.getElementById('tipInputColor');
     const hiddenBg = document.getElementById('tipInputBg');
-    const manualColor = document.getElementById('manualColorPicker');
-    const manualBg = document.getElementById('manualBgPicker');
-
     if (hiddenColor) hiddenColor.value = colorHex;
     if (hiddenBg) hiddenBg.value = bgHex;
-    if (manualColor) manualColor.value = colorHex;
-    if (manualBg) manualBg.value = bgHex;
 
-    document.querySelectorAll('.color-preset-btn').forEach(btn => {
+    document.querySelectorAll('.color-swatch-btn').forEach(btn => {
         const bColor = btn.getAttribute('data-color') || '';
-        const bBg = btn.getAttribute('data-bg') || '';
-        if (bColor.toLowerCase() === colorHex.toLowerCase() && bBg.toLowerCase() === bgHex.toLowerCase()) {
+        const checkIcon = btn.querySelector('i');
+        if (bColor.toLowerCase() === colorHex.toLowerCase()) {
             btn.classList.add('active');
-            btn.style.border = `1.5px solid ${colorHex}`;
-            btn.style.backgroundColor = bgHex;
+            if (checkIcon) checkIcon.classList.remove('d-none');
         } else {
             btn.classList.remove('active');
-            btn.style.border = '1px solid #e2e8f0';
-            btn.style.backgroundColor = '#ffffff';
+            if (checkIcon) checkIcon.classList.add('d-none');
         }
     });
     updateLivePreview();
@@ -866,7 +852,6 @@ function editPrinciple(p) {
 
 // Inisialisasi event listeners real-time setelah DOM selesai dimuat
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Live preview text input listeners
     ['tipInputTitle', 'tipInputDesc', 'tipInputNumber'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', updateLivePreview);
@@ -874,54 +859,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeToggle = document.getElementById('tipInputActive');
     if (activeToggle) activeToggle.addEventListener('change', updateLivePreview);
 
-    // 2. Icon button click delegation
-    document.querySelectorAll('.icon-picker-btn').forEach(btn => {
+    // Icon tile clicks
+    document.querySelectorAll('.icon-tile-btn:not(.dropdown-toggle)').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            const icon = this.getAttribute('data-icon');
-            selectIcon(icon);
+            selectIcon(this.getAttribute('data-icon'));
         });
     });
 
-    // 3. Color preset click delegation
-    document.querySelectorAll('.color-preset-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    // Dropdown extra icons
+    document.querySelectorAll('.extra-icon-item').forEach(item => {
+        item.addEventListener('click', function(e) {
             e.preventDefault();
-            const color = this.getAttribute('data-color');
-            const bg = this.getAttribute('data-bg');
-            selectColorPreset(color, bg);
+            selectIcon(this.getAttribute('data-icon'));
         });
     });
 
-    // 4. Manual / Advanced inputs
-    const manualIcon = document.getElementById('manualIconName');
-    if (manualIcon) {
-        manualIcon.addEventListener('input', function() {
-            document.getElementById('tipInputIcon').value = this.value.trim() || 'fact_check';
-            document.querySelectorAll('.icon-picker-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-icon') === this.value.trim());
-            });
-            updateLivePreview();
+    // Color swatch clicks
+    document.querySelectorAll('.color-swatch-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            selectColorPreset(this.getAttribute('data-color'), this.getAttribute('data-bg'));
         });
-    }
+    });
 
-    const manualColor = document.getElementById('manualColorPicker');
-    if (manualColor) {
-        manualColor.addEventListener('input', function() {
-            document.getElementById('tipInputColor').value = this.value;
-            updateLivePreview();
-        });
-    }
-
-    const manualBg = document.getElementById('manualBgPicker');
-    if (manualBg) {
-        manualBg.addEventListener('input', function() {
-            document.getElementById('tipInputBg').value = this.value;
-            updateLivePreview();
-        });
-    }
-
-    // Initial trigger
     updateLivePreview();
 });
 
