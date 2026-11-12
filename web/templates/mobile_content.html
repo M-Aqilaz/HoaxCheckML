@@ -14,11 +14,84 @@
         </div>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <span class="badge-green-subtle">
-            <i class="bi bi-cloud-check-fill me-1"></i>Supabase Cloud Sync
-        </span>
+        {% if sync_status and sync_status.status == 'connected' and sync_status.type == 'service_role' %}
+            <span class="badge bg-success-subtle text-success border border-success py-1 px-2.5" style="font-size: 11px; font-weight: 600;">
+                <i class="bi bi-shield-check me-1"></i>Supabase Service Role (Full Access)
+            </span>
+        {% elif sync_status and sync_status.status == 'connected' %}
+            <span class="badge-green-subtle">
+                <i class="bi bi-cloud-check-fill me-1"></i>Supabase Cloud Sync
+            </span>
+        {% elif sync_status and sync_status.status == 'rls_blocked' %}
+            <button type="button" class="btn btn-sm btn-outline-warning py-1 px-2" style="font-size: 11px; font-weight: 600;" data-bs-toggle="modal" data-bs-target="#modalSupabaseConfig">
+                <i class="bi bi-shield-exclamation me-1"></i>Supabase RLS Membatasi Write
+            </button>
+        {% else %}
+            <span class="badge bg-danger-subtle text-danger border border-danger py-1 px-2" style="font-size: 11px;">
+                <i class="bi bi-cloud-slash me-1"></i>Supabase Terputus
+            </span>
+        {% endif %}
+
+        <form action="/mobile-content/sync-now?tab={{ active_tab or 'tips' }}" method="POST" class="m-0">
+            <button type="submit" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size: 11px;" title="Coba kirim ulang semua item lokal yang pending ke Supabase">
+                <i class="bi bi-arrow-repeat me-1"></i>Sinkronkan Ulang
+            </button>
+        </form>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#modalSupabaseConfig" title="Konfigurasi Kunci Supabase">
+            <i class="bi bi-gear-fill"></i>
+        </button>
     </div>
 </div>
+
+<!-- ALERT JIKA RLS MEMBATASI WRITE -->
+{% if sync_status and sync_status.status == 'rls_blocked' %}
+<div class="card-modern mb-3 p-3 border-warning" style="background: #fffdf5; border-left: 4px solid #f59e0b;">
+    <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-exclamation-triangle-fill text-warning fs-5 flex-shrink-0 mt-0.5"></i>
+        <div class="w-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="fw-bold text-dark mb-0" style="font-size: 13px;">Penyebab Konten Baru Belum Tampil di Mobile: Supabase Row Level Security (RLS)</h6>
+                <span class="badge bg-warning text-dark" style="font-size: 10px;">RLS Policy Membatasi Anon Write</span>
+            </div>
+            <p class="text-muted mb-2" style="font-size: 12px; line-height: 1.5;">
+                Saat Anda menambah tips atau panduan baru, data tersimpan di sistem lokal Web Admin. Namun database Supabase menolak penyimpanan cloud dengan pesan: <code class="text-danger" style="font-size: 11px;">new row violates row-level security policy</code> karena role public <code>anon</code> hanya diberi izin baca (SELECT). Akibatnya, aplikasi mobile yang membaca data dari Supabase belum dapat melihatnya.
+            </p>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <button class="btn btn-sm btn-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sqlInstructions" style="font-size: 11.5px;">
+                    <i class="bi bi-terminal me-1"></i> Solusi 1 (Rekomendasi Cepat): Salin & Jalankan SQL di Supabase
+                </button>
+                <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#modalSupabaseConfig" style="font-size: 11.5px;">
+                    <i class="bi bi-key-fill me-1"></i> Solusi 2: Masukkan Supabase Service Role Key
+                </button>
+            </div>
+            <div class="collapse mt-2.5" id="sqlInstructions">
+                <div class="p-2.5 rounded bg-dark text-white font-monospace position-relative" style="font-size: 11px;">
+                    <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 py-0 px-2" style="font-size: 10px;" onclick="copySqlSnippet()">
+                        <i class="bi bi-clipboard me-1"></i>Salin Perintah SQL
+                    </button>
+                    <div class="text-warning small mb-1 fw-bold">-- Buka Supabase Dashboard > SQL Editor > Tempel & Klik RUN:</div>
+                    <pre id="sqlSnippet" class="m-0 text-light" style="font-size: 11px; white-space: pre-wrap;">-- Nonaktifkan RLS agar Web Admin & Mobile dapat mengelola konten:
+ALTER TABLE public.literacy_tips DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guide_principles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guide_contents DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_info DISABLE ROW LEVEL SECURITY;
+
+-- Atau jika ingin tetap aktifkan RLS dengan izin penuh:
+DROP POLICY IF EXISTS "Admin full access for literacy_tips" ON public.literacy_tips;
+CREATE POLICY "Admin full access for literacy_tips" ON public.literacy_tips FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin full access for guide_principles" ON public.guide_principles;
+CREATE POLICY "Admin full access for guide_principles" ON public.guide_principles FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin full access for guide_contents" ON public.guide_contents;
+CREATE POLICY "Admin full access for guide_contents" ON public.guide_contents FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin full access for app_info" ON public.app_info;
+CREATE POLICY "Admin full access for app_info" ON public.app_info FOR ALL USING (true) WITH CHECK (true);</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- NAVIGATION TABS -->
 <ul class="nav nav-pills mb-3 gap-1" id="cmsTabs" role="tablist">
@@ -65,9 +138,20 @@
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="badge" style="background: {{ tip.icon_bg_hex or '#D1FAE5' }}; color: {{ tip.icon_color_hex or '#059669' }}; font-size: 11px; font-weight: 700;">
-                                        {{ tip.tip_number }}
-                                    </span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="badge" style="background: {{ tip.icon_bg_hex or '#D1FAE5' }}; color: {{ tip.icon_color_hex or '#059669' }}; font-size: 11px; font-weight: 700;">
+                                            {{ tip.tip_number }}
+                                        </span>
+                                        {% if tip.sync_pending %}
+                                            <span class="badge bg-warning text-dark py-0 px-1.5" style="font-size: 9.5px;" title="Tersimpan lokal di Web, menunggu izin write Supabase">
+                                                <i class="bi bi-clock-history"></i> Pending Cloud
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success-subtle text-success py-0 px-1.5" style="font-size: 9.5px;" title="Tersinkron di Supabase & Mobile">
+                                                <i class="bi bi-cloud-check-fill"></i> Synced
+                                            </span>
+                                        {% endif %}
+                                    </div>
                                     {% if tip.is_active %}
                                         <span class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size: 10px;">Aktif</span>
                                     {% else %}
@@ -174,9 +258,16 @@
                                 {% for p in guide.principles %}
                                 <div class="p-3 border rounded-2 bg-light position-relative">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 10px;">
-                                            Prinsip #{{ p.step_number }} (Urutan: {{ p.order_index }})
-                                        </span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 10px;">
+                                                Prinsip #{{ p.step_number }} (Urutan: {{ p.order_index }})
+                                            </span>
+                                            {% if p.sync_pending %}
+                                                <span class="badge bg-warning text-dark py-0 px-1.5" style="font-size: 9px;"><i class="bi bi-clock-history"></i> Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-success-subtle text-success py-0 px-1.5" style="font-size: 9px;"><i class="bi bi-cloud-check-fill"></i> Synced</span>
+                                            {% endif %}
+                                        </div>
                                         <div class="btn-group btn-group-sm">
                                             <button type="button" class="btn btn-outline-secondary py-0 px-2" style="font-size: 10px;" onclick='editPrinciple({{ p|tojson|safe }})'>
                                                 <i class="bi bi-pencil"></i> Edit
@@ -405,10 +496,80 @@
         </div>
     </div>
 </div>
+
+<!-- ============================================================== -->
+<!-- MODAL: KONFIGURASI SUPABASE KEY -->
+<!-- ============================================================== -->
+<div class="modal fade" id="modalSupabaseConfig" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header py-2 px-3 border-bottom">
+                <h6 class="modal-title fw-bold" style="font-size: 14px;">
+                    <i class="bi bi-shield-lock-fill text-success me-1"></i> Konfigurasi Kunci Supabase
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/mobile-content/config/save?tab={{ active_tab or 'tips' }}" method="POST">
+                <div class="modal-body p-3">
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">Supabase URL Proyek:</label>
+                        <input type="text" class="form-control form-control-sm bg-light" value="{{ supabase_cfg.supabase_url }}" readonly>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">Status Hak Akses Saat Ini:</label>
+                        <div>
+                            {% if sync_status and sync_status.status == 'connected' and sync_status.type == 'service_role' %}
+                                <span class="badge bg-success-subtle text-success border border-success p-1 px-2" style="font-size: 11px;">
+                                    <i class="bi bi-shield-check me-1"></i>Service Role Terpasang (Bypass RLS Aktif)
+                                </span>
+                            {% elif sync_status and sync_status.status == 'connected' %}
+                                <span class="badge bg-success-subtle text-success p-1 px-2" style="font-size: 11px;">
+                                    <i class="bi bi-check-circle me-1"></i>Terhubung (Anon Key)
+                                </span>
+                            {% elif sync_status and sync_status.status == 'rls_blocked' %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning p-1 px-2" style="font-size: 11px;">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>RLS Membatasi Write Anon Key
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger p-1 px-2" style="font-size: 11px;">
+                                    <i class="bi bi-x-circle me-1"></i>Gagal Terhubung
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">
+                            Supabase Service Role Key (Secret Key):
+                        </label>
+                        <textarea name="service_role_key" class="form-control form-control-sm font-monospace" rows="4" 
+                                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">{{ supabase_cfg.supabase_service_role_key or '' }}</textarea>
+                        <div class="text-muted mt-1" style="font-size: 11px; line-height: 1.4;">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Kunci ini didapatkan dari <strong>Supabase Dashboard > Project Settings > API > service_role (secret)</strong>.
+                            Kunci ini memiliki hak bypass RLS sehingga Web Admin dapat menyimpan data langsung ke database cloud tanpa perlu mengubah policy database.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2 px-3 border-top d-flex justify-content-between">
+                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn-ds-primary">Simpan Kunci Service Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+function copySqlSnippet() {
+    const text = document.getElementById('sqlSnippet').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Perintah SQL berhasil disalin ke clipboard! Silakan buka Supabase Dashboard > SQL Editor, tempel dan jalankan.');
+    }).catch(err => {
+        console.error('Gagal menyalin:', err);
+    });
+}
 function editTip(tip) {
     document.getElementById('modalTipTitle').innerText = 'Edit Tips Literasi';
     document.getElementById('tipInputId').value = tip.id || '';

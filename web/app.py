@@ -849,6 +849,8 @@ def mobile_content_view():
     guide = cms_service.get_guide_data()
     app_info = cms_service.get_app_info()
     model_info = get_model_info()
+    sync_status = cms_service.check_supabase_sync_status()
+    supabase_cfg = cms_service.get_config()
     return render_template(
         "mobile_content.html",
         active_tab=tab,
@@ -856,8 +858,34 @@ def mobile_content_view():
         guide=guide,
         app_info=app_info,
         model_info=model_info,
+        sync_status=sync_status,
+        supabase_cfg=supabase_cfg,
         active_page="mobile_content"
     )
+
+
+@app.route("/mobile-content/config/save", methods=["POST"])
+@login_required
+def cms_save_config():
+    service_key = request.form.get("service_role_key", "").strip()
+    cfg = cms_service.get_config()
+    cfg["supabase_service_role_key"] = service_key
+    cms_service.save_config(cfg)
+    flash("Kunci Supabase Service Role berhasil diperbarui!", "success")
+    return redirect(url_for("mobile_content_view", tab=request.args.get("tab", "tips")))
+
+
+@app.route("/mobile-content/sync-now", methods=["POST"])
+@login_required
+def cms_sync_now():
+    tab = request.args.get("tab", "tips")
+    res = cms_service.sync_all_to_supabase()
+    if res["success"]:
+        flash(f"Sinkronisasi Cloud berhasil! {res['synced_count']} konten diperbarui di Supabase.", "success")
+    else:
+        err_detail = " | ".join(res["errors"][:2])
+        flash(f"Sinkronisasi sebagian ({res['synced_count']} berhasil). Supabase RLS membatasi: {err_detail}", "warning")
+    return redirect(url_for("mobile_content_view", tab=tab))
 
 
 @app.route("/mobile-content/tips/save", methods=["POST"])
@@ -888,23 +916,29 @@ def cms_save_tip():
         "order_index": order_index,
         "is_active": is_active
     }
-    cms_service.save_tip(tip_data, tip_id=tip_id)
-    flash("Tips Literasi berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    success, err = cms_service.save_tip(tip_data, tip_id=tip_id)
+    if success:
+        flash("Tips Literasi berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    else:
+        flash(f"Tips tersimpan di dashboard, namun Supabase RLS membatasi write ({err}). Jalankan 4 baris SQL izin di Supabase atau masukkan Service Role Key.", "warning")
     return redirect(url_for("mobile_content_view", tab="tips"))
 
 
 @app.route("/mobile-content/tips/delete/<tip_id>", methods=["POST"])
 @login_required
 def cms_delete_tip(tip_id):
-    cms_service.delete_tip(tip_id)
-    flash("Tips Literasi berhasil dihapus.", "success")
+    success, err = cms_service.delete_tip(tip_id)
+    if success:
+        flash("Tips Literasi berhasil dihapus.", "success")
+    else:
+        flash(f"Tips dihapus dari dashboard lokal, namun Supabase RLS membatasi ({err}).", "warning")
     return redirect(url_for("mobile_content_view", tab="tips"))
 
 
 @app.route("/mobile-content/tips/toggle/<tip_id>", methods=["POST"])
 @login_required
 def cms_toggle_tip(tip_id):
-    new_status = cms_service.toggle_tip_status(tip_id)
+    new_status, err = cms_service.toggle_tip_status(tip_id)
     status_str = "diaktifkan" if new_status else "dinonaktifkan"
     flash(f"Tips Literasi berhasil {status_str}.", "info")
     return redirect(url_for("mobile_content_view", tab="tips"))
@@ -919,8 +953,11 @@ def cms_save_guide_content():
     raw_items = request.form.get("checklist_items", "").strip()
     checklist_items = [line.strip() for line in raw_items.splitlines() if line.strip()]
 
-    cms_service.save_guide_content(quote_text, checklist_title, checklist_subtitle, checklist_items)
-    flash("Kutipan & Checklist Panduan berhasil disimpan!", "success")
+    success, err = cms_service.save_guide_content(quote_text, checklist_title, checklist_subtitle, checklist_items)
+    if success:
+        flash("Kutipan & Checklist Panduan berhasil disimpan!", "success")
+    else:
+        flash(f"Tersimpan di dashboard, namun Supabase RLS membatasi ({err}).", "warning")
     return redirect(url_for("mobile_content_view", tab="guide"))
 
 
@@ -950,16 +987,22 @@ def cms_save_guide_principle():
         "order_index": order_index,
         "sub_points": sub_points
     }
-    cms_service.save_guide_principle(p_data, principle_id=p_id)
-    flash("Prinsip Panduan berhasil disimpan!", "success")
+    success, err = cms_service.save_guide_principle(p_data, principle_id=p_id)
+    if success:
+        flash("Prinsip Panduan berhasil disimpan!", "success")
+    else:
+        flash(f"Tersimpan di dashboard, namun Supabase RLS membatasi ({err}).", "warning")
     return redirect(url_for("mobile_content_view", tab="guide"))
 
 
 @app.route("/mobile-content/guide/delete-principle/<p_id>", methods=["POST"])
 @login_required
 def cms_delete_guide_principle(p_id):
-    cms_service.delete_guide_principle(p_id)
-    flash("Prinsip Panduan berhasil dihapus.", "success")
+    success, err = cms_service.delete_guide_principle(p_id)
+    if success:
+        flash("Prinsip Panduan berhasil dihapus.", "success")
+    else:
+        flash(f"Dihapus dari dashboard, namun Supabase RLS membatasi ({err}).", "warning")
     return redirect(url_for("mobile_content_view", tab="guide"))
 
 
@@ -998,8 +1041,11 @@ def cms_save_app_info():
         "disclaimer_text": disclaimer_text,
         "app_version": app_version
     }
-    cms_service.save_app_info(info_data)
-    flash("Informasi Tentang HoaxCheck berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    success, err = cms_service.save_app_info(info_data)
+    if success:
+        flash("Informasi Tentang HoaxCheck berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    else:
+        flash(f"Tersimpan di dashboard, namun Supabase RLS membatasi ({err}).", "warning")
     return redirect(url_for("mobile_content_view", tab="about"))
 
 
