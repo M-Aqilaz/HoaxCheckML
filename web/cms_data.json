@@ -14,6 +14,19 @@
       "created_at": "2026-11-12T01:05:33.171371+00:00"
     },
     {
+      "id": "42041ad6-b2b3-4a98-b124-3d5162888376",
+      "title": "dag",
+      "description": "gad",
+      "tip_number": "gafd",
+      "icon_name": "fact_check",
+      "icon_bg_hex": "#FFE4E6",
+      "icon_color_hex": "#E11D48",
+      "category": "Umum",
+      "order_index": 1,
+      "is_active": true,
+      "created_at": "2026-11-12T03:22:32.266744+00:00"
+    },
+    {
       "id": "55bf0878-74ab-445b-8d95-1179416e4aad",
       "title": "Waspada judul",
       "description": "Jangan langsung percaya judul berita yang bombastis dan clickbait yang memicu emosi.",
@@ -89,7 +102,7 @@
   "guide_contents": [
     {
       "id": "1ae66c10-2269-404a-b3ea-5cb6623571e1",
-      "quote_text": "Berita yang kredibel dibangun atas fakta yang telah diuji ulang (cross-checked) ke sumber primer yang berwenang, bukan sekadar kutipan anonim atau rumor viral di lini masa.",
+      "quote_text": "Berita yang kredibel dibangun atas fakta yang telah diuji ulang (cross-checked) ke sumber primer yang berwenang, bukan sekadar kutipan anonim atau rumor viral di lini masa. tes",
       "checklist_title": "Hal yang Perlu Diperhatikan",
       "checklist_subtitle": "Gunakan daftar periksa klaim ini sebelum membagikan ulang kabar ke grup percakapan atau media sosial.",
       "checklist_items": [
@@ -104,7 +117,7 @@
     {
       "id": "1c4e351e-55da-4684-abb7-772b1761a609",
       "app_name": "HoaxCheck",
-      "tagline": "Bantu Kenali Informasi yang Meragukan",
+      "tagline": "Bantu Kenali Informasi yang Meragukan ff",
       "header_description": "HoaxCheck adalah aplikasi yang membantu pengguna mendapatkan indikasi awal terhadap informasi yang berpotensi hoaks melalui analisis teks berbasis Machine Learning.",
       "about_description": "Dirancang khusus untuk ekosistem literasi digital nusantara, HoaxCheck memadai struktur semantik, nuansa provokatif, serta konsistensi sintaksis pesan viral guna memetakan kemungkinan misinformasi secara objektif dalam hitungan detik.",
       "pills": [
@@ -133,7 +146,7 @@
       ],
       "disclaimer_text": "HoaxCheck merupakan alat bantu deteksi awal dan bukan alat fact-checking resmi lembaga pers. Hasil yang diberikan merupakan prediksi probabilistik model kecerdasan buatan dan tetap perlu diverifikasi ulang melalui portal berita bersertifikat Dewan Pers.",
       "app_version": "HoaxCheck v1.0.0",
-      "updated_at": "2026-11-12T01:05:33.171371+00:00"
+      "updated_at": "2026-11-12T03:22:56.250575+00:00"
     }
   ]
 }

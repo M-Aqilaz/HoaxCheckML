@@ -427,6 +427,11 @@ def train_view():
             with open(os.path.join(MODEL_DIR, "model_metadata.json"), "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=4)
 
+            try:
+                detector_engine.reload_model()
+            except Exception:
+                pass
+
             flash(
                 f"🎉 Model Bernoulli Naive Bayes berhasil dilatih! Akurasi: {acc}%, F1-Score: {f1}% (dari {len(df_all)} data seimbang). Siap dipakai di Web & Mobile API!",
                 "success"
