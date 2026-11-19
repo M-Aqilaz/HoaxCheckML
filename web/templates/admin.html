@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoaxCheck — Admin Database & Manajemen Konten App</title>
+    <!-- Favicon / Tab Logo -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <!-- Fonts: Design System Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --sidebar-width: 260px;
+            --sidebar-bg: #1b1c1d;
+            --sidebar-hover: #303031;
+            
+            /* Primary (Emerald / Forest Ramp) */
+            --primary: #006c4e;
+            --primary-base: #1ca379;
+            --primary-dark: #00513a;
+            --primary-light: #45bf93;
+            --primary-subtle: #e6f8f0;
+            --primary-border: #82f8c8;
+            --primary-glow: rgba(0, 108, 78, 0.25);
+
+            /* Secondary (Mint Ramp) */
+            --secondary: #5ac596;
+            --secondary-dark: #005237;
+            --secondary-subtle: #edfbf4;
+
+            /* Tertiary (Sky Blue Ramp) */
+            --tertiary: #236391;
+            --tertiary-base: #78b0e3;
+            --tertiary-subtle: #e8f2ff;
+            --tertiary-border: #cde5ff;
+
+            /* Neutral (Charcoal / Gray Ramp) */
+            --neutral-darkest: #1b1c1d;
+            --neutral-dark: #242526;
+            --neutral-surface: #303031;
+            --neutral-muted: #5e5e5f;
+            --neutral-border: #e3e2e3;
+            --neutral-light: #f2f0f1;
+            --bg-page: #f8f9fa;
+
+            /* Semantic */
+            --danger: #ba1a1a;
+            --danger-subtle: #fff1f2;
+            --danger-border: #fca5a5;
+            --success: #006c4e;
+            --success-subtle: #e6f8f0;
+            --success-border: #82f8c8;
+            --warning: #d97706;
+            --warning-subtle: #fef3c7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(28, 163, 121, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(120, 176, 227, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            font-family: var(--font-family);
+            color: var(--neutral-dark);
+            letter-spacing: -0.01em;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            color: #ababac;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 6px 12px 20px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 108, 78, 0.35);
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: #797879;
+            font-weight: 500;
+        }
+
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ababac;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-item-custom:hover {
+            background-color: var(--sidebar-hover);
+            color: #f2f0f1;
+            transform: translateX(2px);
+        }
+
+        .nav-item-custom.active {
+            background: #006c4e;
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.35);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 32px 42px;
+            min-height: 100vh;
+        }
+
+        /* CARDS */
+        .card-modern {
+            background: #ffffff;
+            border: 1px solid var(--neutral-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px -2px rgba(36, 37, 38, 0.04), 0 2px 6px -1px rgba(36, 37, 38, 0.02);
+            margin-bottom: 26px;
+            overflow: hidden;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .card-modern:hover {
+            box-shadow: 0 10px 30px -4px rgba(36, 37, 38, 0.07);
+            border-color: #c7c6c7;
+        }
+
+        .card-header-modern {
+            background: #ffffff;
+            border-bottom: 1px solid var(--neutral-light);
+            padding: 20px 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--neutral-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-title-gradient {
+            background: linear-gradient(135deg, #1b1c1d 0%, #00513a 60%, #1ca379 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        /* STATS CARDS */
+        .stat-card-gradient {
+            background: #ffffff;
+            border: 1px solid var(--neutral-border);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            border-color: #c7c6c7;
+        }
+
+        .stat-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        /* CUSTOM ADMIN TABS */
+        .admin-nav-pills {
+            display: flex;
+            gap: 8px;
+            padding: 6px;
+            background: #ffffff;
+            border: 1px solid var(--neutral-border);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #5e5e5f;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .admin-nav-link:hover {
+            color: #1b1c1d;
+            background: var(--neutral-light);
+        }
+
+        .admin-nav-link.active {
+            background: #006c4e;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 108, 78, 0.25);
+        }
+
+        .badge-tab-count {
+            padding: 3px 8px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.08);
+            color: inherit;
+        }
+
+        .admin-nav-link.active .badge-tab-count {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        /* BUTTONS */
+        .btn-brand-primary {
+            background: #006c4e;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 108, 78, 0.2);
+        }
+
+        .btn-brand-primary:hover {
+            background: #00513a;
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 108, 78, 0.3);
+        }
+
+        .btn-brand-secondary {
+            background: var(--neutral-light);
+            color: var(--neutral-dark);
+            border: 1px solid var(--neutral-border);
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-brand-secondary:hover {
+            background: #e5e3e4;
+            color: #1b1c1d;
+        }
+
+        /* TABLES */
+        .table-modern {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-modern thead th {
+            background: #fbfbfb;
+            color: #64748b;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--neutral-light);
+            border-top: none;
+        }
+
+        .table-modern tbody td {
+            padding: 16px 20px;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--neutral-light);
+            font-size: 0.9rem;
+            color: var(--neutral-dark);
+        }
+
+        .table-modern tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-modern tbody tr:hover {
+            background-color: #fafbfc;
+        }
+
+        /* BADGES */
+        .badge-status {
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-status-active {
+            background: #e6f8f0;
+            color: #006c4e;
+            border: 1px solid #82f8c8;
+        }
+
+        .badge-status-inactive {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+        }
+
+        .badge-status-pending {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .badge-status-progress {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+
+        .badge-status-done {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        .badge-status-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+
+        /* PREVIEW MOBILE CARD */
+        .phone-frame {
+            max-width: 380px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 12px solid #1e293b;
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .phone-notch {
+            width: 140px;
+            height: 20px;
+            background: #1e293b;
+            margin: 0 auto 12px auto;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .phone-screen {
+            padding: 16px;
+            background: #f8fafc;
+            font-size: 13px;
+        }
+
+        .repeater-card {
+            background: #fcfcfc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .repeater-card:hover {
+            border-color: #94a3b8;
+            background: #ffffff;
+        }
+
+        /* CUSTOM CONFIRM MODAL & TOAST */
+        .confirm-icon-box {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #fee2e2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-danger-ring 2.2s infinite;
+        }
+
+        @keyframes pulse-danger-ring {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+            70% { box-shadow: 0 0 0 14px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+
+        .btn-confirm-cancel {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .btn-confirm-cancel:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-confirm-danger {
+            background: #dc2626;
+            color: #ffffff;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+            transition: all 0.2s ease;
+        }
+
+        .btn-confirm-danger:hover {
+            background: #b91c1c;
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(220, 38, 38, 0.45);
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <i class="bi bi-shield-check fs-5"></i>
+        </div>
+        <div>
+            <div class="brand-title">HoaxCheck</div>
+            <div class="brand-subtitle">AI & ML Verification Studio</div>
+        </div>
+    </div>
+
+    <div class="nav flex-column mb-auto">
+        <a href="/detector" class="nav-item-custom">
+            <i class="bi bi-cpu fs-5"></i>
+            <span>Cek Hoaks (Live ML)</span>
+        </a>
+        <a href="/pipeline" class="nav-item-custom">
+            <i class="bi bi-diagram-3 fs-5"></i>
+            <span>Visualisasi Pipeline ML</span>
+        </a>
+        <a href="/benchmark" class="nav-item-custom">
+            <i class="bi bi-graph-up-arrow fs-5"></i>
+            <span>Benchmark Riset ML</span>
+        </a>
+        <a href="/?tab=dataset" class="nav-item-custom">
+            <i class="bi bi-folder2-open fs-5"></i>
+            <span>Kelola Dataset</span>
+        </a>
+        <a href="/?tab=scraper" class="nav-item-custom">
+            <i class="bi bi-newspaper fs-5"></i>
+            <span>Scraper Berita Valid</span>
+        </a>
+        <a href="/admin" class="nav-item-custom active">
+            <i class="bi bi-database-gear fs-5"></i>
+            <span>Admin Data Supabase</span>
+        </a>
+    </div>
+
+    <div class="pt-3 border-top border-secondary border-opacity-10 text-muted small">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="pulse-dot"></div>
+            <span class="text-white small fw-bold">Supabase Cloud Connected</span>
+        </div>
+        <div style="font-size: 11px; color: #64748b;">
+            {% if conn_status.using_service_role %}
+                <span class="text-success fw-bold"><i class="bi bi-shield-fill-check"></i> Service Role Admin</span>
+            {% else %}
+                <span class="text-warning"><i class="bi bi-key-fill"></i> Anon API Key</span>
+            {% endif %}
+        </div>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+    <!-- Flash message -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        {% elif category == 'danger' or category == 'error' %}
+                            <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Top Header / Hero -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-emerald text-white px-2.5 py-1 rounded-pill" style="background-color: var(--primary); font-size: 11px;">
+                    <i class="bi bi-database-fill-gear"></i> Management Dashboard
+                </span>
+                <span class="text-muted small">Supabase PostgREST Client</span>
+            </div>
+            <h2 class="hero-title-gradient mb-1">Pusat Manajemen Database & Aplikasi</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                Kelola konten aplikasi HoaxCheck yang aktif di Supabase: Tips Beranda, Panduan Literasi, Info Aplikasi, Laporan Masalah, & Broadcast Notifikasi.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="/admin?tab=settings" class="btn btn-brand-secondary">
+                <i class="bi bi-gear-fill"></i>
+                <span>Konfigurasi Supabase</span>
+            </a>
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 btn-sm" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <!-- RLS Policy Notice if needed -->
+    {% if not conn_status.using_service_role %}
+        <div class="card-modern p-3 mb-4 border-warning bg-warning bg-opacity-10">
+            <div class="d-flex align-items-start gap-3">
+                <div class="text-warning fs-3 lh-1"><i class="bi bi-info-circle-fill"></i></div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold text-dark">Menggunakan Kunci Supabase Anon (Client Mode)</div>
+                    <div class="small text-muted mb-2">
+                        Tabel <strong>Tips Literasi</strong>, <strong>Panduan</strong>, dan <strong>Info Aplikasi</strong> sudah memiliki RLS <code>Admin full access</code>. Untuk mengelola <strong>Laporan Masalah</strong> dan <strong>Broadcast Notifikasi</strong> secara penuh tanpa batasan RLS:
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <a href="/admin?tab=settings" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill">
+                            <i class="bi bi-key-fill"></i> Masukkan Service Role Key
+                        </a>
+                        <button class="btn btn-outline-dark btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSqlMigration">
+                            <i class="bi bi-code-slash"></i> Lihat SQL Migration Supabase
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- TAB NAVIGATION BAR -->
+    <div class="admin-nav-pills">
+        <a href="/admin?tab=tips" class="admin-nav-link {% if active_tab == 'tips' %}active{% endif %}">
+            <i class="bi bi-lightbulb-fill"></i>
+            <span>Tips Literasi Beranda</span>
+            {% if active_tab == 'tips' and tips %}<span class="badge-tab-count">{{ tips|length }}</span>{% endif %}
+        </a>
+        <a href="/admin?tab=guides" class="admin-nav-link {% if active_tab == 'guides' %}active{% endif %}">
+            <i class="bi bi-journal-bookmark-fill"></i>
+            <span>Panduan & Checklist</span>
+            {% if active_tab == 'guides' and principles %}<span class="badge-tab-count">{{ principles|length }}</span>{% endif %}
+        </a>
+        <a href="/admin?tab=app_info" class="admin-nav-link {% if active_tab == 'app_info' %}active{% endif %}">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Tentang HoaxCheck</span>
+        </a>
+        <a href="/admin?tab=reports" class="admin-nav-link {% if active_tab == 'reports' %}active{% endif %}">
+            <i class="bi bi-bug-fill"></i>
+            <span>Laporan Masalah / Bug</span>
+            {% if active_tab == 'reports' and reports %}<span class="badge-tab-count">{{ reports|length }}</span>{% endif %}
+        </a>
+        <a href="/admin?tab=notifications" class="admin-nav-link {% if active_tab == 'notifications' %}active{% endif %}">
+            <i class="bi bi-broadcast"></i>
+            <span>Broadcast Notifikasi</span>
+            {% if active_tab == 'notifications' and notifications %}<span class="badge-tab-count">{{ notifications|length }}</span>{% endif %}
+        </a>
+        <a href="/admin?tab=settings" class="admin-nav-link {% if active_tab == 'settings' %}active{% endif %}">
+            <i class="bi bi-gear-fill"></i>
+            <span>Koneksi Supabase</span>
+        </a>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 1: TIPS LITERASI BERANDA (literacy_tips)                           -->
+    <!-- ======================================================================= -->
+    {% if active_tab == 'tips' %}
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card-gradient">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small fw-bold">TOTAL TIPS LITERASI</span>
+                        <div class="stat-icon-box bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-lightbulb"></i>
+                        </div>
+                    </div>
+                    <div class="h3 fw-bold mb-0">{{ tips|length }}</div>
+                    <div class="small text-muted mt-1">Tersimpan di tabel <code>literacy_tips</code></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card-gradient">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small fw-bold">TIPS AKTIF DI APLIKASI</span>
+                        <div class="stat-icon-box bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-eye-fill"></i>
+                        </div>
+                    </div>
+                    <div class="h3 fw-bold mb-0 text-success">
+                        {{ tips | selectattr('is_active') | list | length }}
+                    </div>
+                    <div class="small text-muted mt-1">Ditampilkan di Carousel Beranda Flutter</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card-gradient">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small fw-bold">NONAKTIF / DRAFT</span>
+                        <div class="stat-icon-box bg-secondary bg-opacity-10 text-secondary">
+                            <i class="bi bi-eye-slash-fill"></i>
+                        </div>
+                    </div>
+                    <div class="h3 fw-bold mb-0 text-secondary">
+                        {{ tips | rejectattr('is_active') | list | length }}
+                    </div>
+                    <div class="small text-muted mt-1">Disembunyikan dari aplikasi mobile</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Table Card -->
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <div>
+                    <h5 class="card-header-title mb-1">
+                        <i class="bi bi-card-checklist text-primary"></i> Daftar Tips Literasi Beranda
+                    </h5>
+                    <div class="small text-muted">
+                        Aturan Supabase: <code>Admin full access for literacy_tips</code>. Digunakan Flutter via <code>getTips()</code>.
+                    </div>
+                </div>
+                <button type="button" class="btn btn-brand-primary" data-bs-toggle="modal" data-bs-target="#modalAddTip">
+                    <i class="bi bi-plus-lg"></i> Tambah Tips Baru
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">Urutan</th>
+                            <th style="width: 130px;">Nomor Tips</th>
+                            <th style="width: 100px;">Icon / Tag</th>
+                            <th>Judul & Deskripsi</th>
+                            <th style="width: 110px;">Kategori</th>
+                            <th style="width: 120px;">Status</th>
+                            <th style="width: 160px;" class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if tips %}
+                            {% for tip in tips %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-light text-dark border fw-bold">{{ tip.order_index }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ tip.tip_number }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-inline-flex align-items-center justify-content-center p-2 rounded-3 shadow-sm"
+                                             style="background-color: {{ tip.icon_bg_hex or '#D1FAE5' }}; color: {{ tip.icon_color_hex or '#059669' }}; width: 40px; height: 40px;">
+                                            <i class="bi bi-stars fs-5"></i>
+                                        </div>
+                                        <div style="font-size: 10px;" class="text-muted mt-1">{{ tip.icon_name }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ tip.title }}</div>
+                                        <div class="text-muted small mt-1 text-truncate" style="max-width: 450px;">
+                                            {{ tip.description }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-secondary border">{{ tip.category or 'Umum' }}</span>
+                                    </td>
+                                    <td>
+                                        {% if tip.is_active %}
+                                            <form action="/admin/tips/toggle/{{ tip.id }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="is_active" value="false">
+                                                <button type="submit" class="btn badge-status badge-status-active border-0 p-1 px-2.5" title="Klik untuk nonaktifkan">
+                                                    <i class="bi bi-check-circle-fill"></i> Aktif
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form action="/admin/tips/toggle/{{ tip.id }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="is_active" value="true">
+                                                <button type="submit" class="btn badge-status badge-status-inactive border-0 p-1 px-2.5" title="Klik untuk aktifkan">
+                                                    <i class="bi bi-x-circle-fill"></i> Draft
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 me-1"
+                                                onclick="openEditTipModal({{ tip | tojson }})">
+                                            <i class="bi bi-pencil-fill"></i> Edit
+                                        </button>
+                                        <form action="/admin/tips/delete/{{ tip.id }}" method="POST" class="d-inline"
+                                              onsubmit="return showCustomConfirm(event, this, 'Hapus Tips Literasi?', 'Apakah Anda yakin ingin menghapus tips \'{{ tip.title | replace('\'', '\\\'') }}\' ini dari Supabase? Data akan terhapus secara permanen.')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2.5">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-lightbulb fs-1 d-block mb-2 text-secondary"></i>
+                                    Belum ada data tips literasi di tabel <code>literacy_tips</code>.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ======================================================================= -->
+    <!-- TAB 2: PANDUAN LITERASI & CHECKLIST (guide_principles & guide_contents) -->
+    <!-- ======================================================================= -->
+    {% if active_tab == 'guides' %}
+        <div class="row g-4 mb-4">
+            <!-- Prinsip Panduan Langkah (guide_principles) -->
+            <div class="col-12">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <div>
+                            <h5 class="card-header-title mb-1">
+                                <i class="bi bi-list-ol text-primary"></i> Langkah Prinsip Verifikasi (guide_principles)
+                            </h5>
+                            <div class="small text-muted">
+                                Menampilkan langkah panduan & poin verifikasi (<code>sub_points</code> JSONB) di aplikasi Flutter.
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-brand-primary" data-bs-toggle="modal" data-bs-target="#modalAddPrinciple">
+                            <i class="bi bi-plus-lg"></i> Tambah Langkah Prinsip
+                        </button>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="row g-3">
+                            {% if principles %}
+                                {% for item in principles %}
+                                    <div class="col-lg-6">
+                                        <div class="border rounded-4 p-3.5 bg-white h-100 shadow-sm d-flex flex-column">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-bold">
+                                                        Langkah #{{ item.step_number }}
+                                                    </span>
+                                                    <span class="badge bg-light text-muted border">Urutan: {{ item.order_index }}</span>
+                                                </div>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-light btn-sm rounded-circle p-1" data-bs-toggle="dropdown">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                                                        <li>
+                                                            <a class="dropdown-item py-2" href="javascript:void(0)" onclick="openEditPrincipleModal({{ item | tojson }})">
+                                                                <i class="bi bi-pencil me-2"></i> Edit Langkah
+                                                            </a>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <form action="/admin/principles/delete/{{ item.id }}" method="POST"
+                                                                  onsubmit="return showCustomConfirm(event, this, 'Hapus Langkah Panduan?', 'Apakah Anda yakin ingin menghapus langkah #{{ item.step_number }} (\'{{ item.title | replace('\'', '\\\'') }}\') ini dari Supabase?')">
+                                                                <button type="submit" class="dropdown-item text-danger py-2">
+                                                                    <i class="bi bi-trash3 me-2"></i> Hapus
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                            <h6 class="fw-bold text-dark mt-2 mb-1">{{ item.title }}</h6>
+                                            <p class="text-muted small mb-3">{{ item.description }}</p>
+
+                                            <!-- Sub-points list -->
+                                            <div class="mt-auto pt-2 border-top">
+                                                <div class="small fw-bold text-secondary mb-2">Sub-Poin Verifikasi:</div>
+                                                <div class="d-flex flex-column gap-1.5">
+                                                    {% if item.sub_points %}
+                                                        {% for sp in item.sub_points %}
+                                                            <div class="d-flex align-items-start gap-2 small bg-light p-2 rounded-3">
+                                                                <i class="bi bi-check2-circle text-primary mt-0.5"></i>
+                                                                <span class="text-dark">{{ sp.text }}</span>
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span class="text-muted small">Tidak ada sub-poin khusus.</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12 text-center py-5 text-muted">
+                                    <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
+                                    Belum ada data di tabel <code>guide_principles</code>.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Konten Kutipan & Checklist Verifikasi (guide_contents) -->
+            <div class="col-12">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <div>
+                            <h5 class="card-header-title mb-1">
+                                <i class="bi bi-quote text-primary"></i> Kutipan & Checklist Verifikasi (guide_contents)
+                            </h5>
+                            <div class="small text-muted">
+                                Mengatur kutipan jurnalistik & butir-butir checklist verifikasi klaim berita sebelum dibagikan.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <form action="/admin/guide-content/save" method="POST">
+                            <div class="row g-4">
+                                <div class="col-lg-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-dark">Kutipan Bijak / Quote Jurnalistik</label>
+                                        <textarea name="quote_text" rows="4" class="form-control rounded-3" required
+                                                  placeholder="Masukkan kutipan komprehensif tentang pentingnya verifikasi sumber berita...">{{ guide_content.quote_text if guide_content else '' }}</textarea>
+                                        <div class="form-text">Akan ditampilkan pada banner kutipan di atas halaman Panduan Literasi.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-dark">Judul Kotak Checklist</label>
+                                        <input type="text" name="checklist_title" class="form-control rounded-3" required
+                                               value="{{ guide_content.checklist_title if guide_content else 'Hal yang Perlu Diperhatikan' }}">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-dark">Subjudul / Arahan Checklist</label>
+                                        <textarea name="checklist_subtitle" rows="2" class="form-control rounded-3" required
+                                                  placeholder="Gunakan daftar periksa klaim ini sebelum membagikan ulang kabar...">{{ guide_content.checklist_subtitle if guide_content else '' }}</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="form-label fw-bold small text-dark mb-0">Daftar Pertanyaan Checklist (JSONB array)</label>
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addChecklistItem()">
+                                            <i class="bi bi-plus"></i> Tambah Butir
+                                        </button>
+                                    </div>
+                                    <div id="checklistItemsContainer" class="d-flex flex-column gap-2">
+                                        {% if guide_content and guide_content.checklist_items %}
+                                            {% for itm in guide_content.checklist_items %}
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-white"><i class="bi bi-check-square text-success"></i></span>
+                                                    <input type="text" name="checklist_items[]" class="form-control" value="{{ itm }}" required>
+                                                    <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white"><i class="bi bi-check-square text-success"></i></span>
+                                                <input type="text" name="checklist_items[]" class="form-control" value="Apakah berita mengutip sumber pertama yang kompeten dan kredibel?" required>
+                                                <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-text mt-2">Setiap poin akan diberi centang interaktif pada aplikasi mobile pengguna.</div>
+                                </div>
+
+                                <div class="col-12 text-end pt-3 border-top">
+                                    <button type="submit" class="btn btn-brand-primary">
+                                        <i class="bi bi-floppy-fill"></i> Simpan Konten Panduan & Checklist
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ======================================================================= -->
+    <!-- TAB 3: INFORMASI APLIKASI (app_info)                                    -->
+    <!-- ======================================================================= -->
+    {% if active_tab == 'app_info' %}
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <div>
+                    <h5 class="card-header-title mb-1">
+                        <i class="bi bi-info-circle text-primary"></i> Kelola Halaman "Tentang HoaxCheck" (app_info)
+                    </h5>
+                    <div class="small text-muted">
+                        Aturan Supabase: <code>Admin full access for app_info</code>. Mengatur visi aplikasi, pills, alur steps, dan penafian hukum.
+                    </div>
+                </div>
+                <div class="badge bg-light text-dark border">
+                    Versi Aktif: {{ app_info.app_version if app_info else 'v1.0.0' }}
+                </div>
+            </div>
+
+            <div class="p-4">
+                <form action="/admin/app-info/save" method="POST">
+                    <div class="row g-4">
+                        <!-- Formulir Pengaturan -->
+                        <div class="col-lg-7">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-dark">Nama Aplikasi</label>
+                                    <input type="text" name="app_name" class="form-control rounded-3" required
+                                           value="{{ app_info.app_name if app_info else 'HoaxCheck' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-dark">Versi Rilis Aplikasi</label>
+                                    <input type="text" name="app_version" class="form-control rounded-3" required
+                                           value="{{ app_info.app_version if app_info else 'HoaxCheck v1.0.0' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small text-dark">Tagline Utama</label>
+                                    <input type="text" name="tagline" class="form-control rounded-3" required
+                                           value="{{ app_info.tagline if app_info else 'Bantu Kenali Informasi yang Meragukan' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small text-dark">Header Description (Ringkasan Header)</label>
+                                    <textarea name="header_description" rows="3" class="form-control rounded-3" required>{{ app_info.header_description if app_info else '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small text-dark">About Description (Deskripsi AI & Visi)</label>
+                                    <textarea name="about_description" rows="4" class="form-control rounded-3" required>{{ app_info.about_description if app_info else '' }}</textarea>
+                                </div>
+                            </div>
+
+                            <!-- Highlights Pills Repeater -->
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label fw-bold small text-dark mb-0">Highlight Pills (Fitur Unggulan)</label>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addPillItem()">
+                                        <i class="bi bi-plus"></i> Tambah Tagar Pill
+                                    </button>
+                                </div>
+                                <div id="pillsContainer" class="d-flex flex-wrap gap-2">
+                                    {% if app_info and app_info.pills %}
+                                        {% for p in app_info.pills %}
+                                            <div class="input-group" style="width: auto;">
+                                                <input type="text" name="pills[]" class="form-control form-control-sm" value="{{ p }}" style="width: 180px;">
+                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="input-group" style="width: auto;">
+                                            <input type="text" name="pills[]" class="form-control form-control-sm" value="Deteksi < 3 Detik" style="width: 180px;">
+                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Steps Alur Deteksi Repeater -->
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label fw-bold small text-dark mb-0">Alur Langkah Deteksi / How It Works (JSONB steps)</label>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addStepItem()">
+                                        <i class="bi bi-plus"></i> Tambah Langkah
+                                    </button>
+                                </div>
+                                <div id="stepsContainer">
+                                    {% if app_info and app_info.steps %}
+                                        {% for stp in app_info.steps %}
+                                            <div class="repeater-card">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <div class="d-flex gap-2">
+                                                        <input type="text" name="step_numbers[]" class="form-control form-control-sm" style="width: 70px;" value="{{ stp.number }}" placeholder="01">
+                                                        <input type="text" name="step_icons[]" class="form-control form-control-sm" style="width: 120px;" value="{{ stp.icon }}" placeholder="edit_note">
+                                                    </div>
+                                                    <button type="button" class="btn btn-link text-danger p-0" onclick="this.closest('.repeater-card').remove()">
+                                                        <i class="bi bi-trash"></i> Hapus Langkah
+                                                    </button>
+                                                </div>
+                                                <input type="text" name="step_titles[]" class="form-control form-control-sm mb-2" value="{{ stp.title }}" placeholder="Judul Langkah">
+                                                <textarea name="step_descs[]" rows="2" class="form-control form-control-sm" placeholder="Deskripsi tahapan langkah...">{{ stp.description }}</textarea>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Disclaimer -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-dark">Catatan Penafian Hukum (Disclaimer)</label>
+                                <textarea name="disclaimer_text" rows="3" class="form-control rounded-3" required>{{ app_info.disclaimer_text if app_info else '' }}</textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-brand-primary">
+                                <i class="bi bi-floppy-fill"></i> Simpan Informasi Aplikasi
+                            </button>
+                        </div>
+
+                        <!-- Live Preview Frame (Mockup Mobile App) -->
+                        <div class="col-lg-5">
+                            <div class="sticky-top" style="top: 24px;">
+                                <div class="text-center small fw-bold text-muted mb-2">
+                                    <i class="bi bi-phone"></i> Tampilan di Aplikasi Flutter Pengguna
+                                </div>
+                                <div class="phone-frame">
+                                    <div class="phone-notch"></div>
+                                    <div class="phone-screen">
+                                        <div class="text-center pb-3 border-bottom mb-3">
+                                            <div class="brand-icon mx-auto mb-2" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-shield-check fs-4"></i>
+                                            </div>
+                                            <div class="fw-bold fs-6 text-dark">{{ app_info.app_name if app_info else 'HoaxCheck' }}</div>
+                                            <span class="badge bg-light text-secondary border px-2 py-1 mt-1" style="font-size: 10px;">
+                                                {{ app_info.app_version if app_info else 'v1.0.0' }}
+                                            </span>
+                                            <div class="text-primary fw-bold mt-2" style="font-size: 12px;">
+                                                {{ app_info.tagline if app_info else 'Bantu Kenali Informasi yang Meragukan' }}
+                                            </div>
+                                        </div>
+
+                                        <div class="p-2.5 rounded-3 bg-white border mb-3">
+                                            <div class="fw-bold mb-1" style="font-size: 11px; color: var(--primary);">TENTANG APLIKASI</div>
+                                            <p class="text-muted mb-0" style="font-size: 11.5px; line-height: 1.4;">
+                                                {{ app_info.about_description[:160] if app_info else '' }}...
+                                            </p>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-1 mb-3">
+                                            {% if app_info and app_info.pills %}
+                                                {% for p in app_info.pills %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 10px;">
+                                                        {{ p }}
+                                                    </span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="p-2.5 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger" style="font-size: 10px;">
+                                            <i class="bi bi-shield-exclamation"></i> <strong>Disclaimer:</strong> {{ app_info.disclaimer_text[:120] if app_info else '' }}...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ======================================================================= -->
+    <!-- TAB 4: LAPORAN MASALAH / BUG (problem_reports)                         -->
+    <!-- ======================================================================= -->
+    {% if active_tab == 'reports' %}
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card-gradient">
+                    <span class="text-muted small fw-bold">TOTAL LAPORAN</span>
+                    <div class="h3 fw-bold mb-0 mt-2">{{ reports|length }}</div>
+                    <div class="small text-muted mt-1">Dikirim pengguna Flutter</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card-gradient">
+                    <span class="text-warning small fw-bold">MENUNGGU REVIEW</span>
+                    <div class="h3 fw-bold mb-0 mt-2 text-warning">
+                        {{ reports | selectattr('status', 'equalto', 'Menunggu Review') | list | length }}
+                    </div>
+                    <div class="small text-muted mt-1">Perlu ditindaklanjuti</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card-gradient">
+                    <span class="text-primary small fw-bold">SEDANG DIPROSES</span>
+                    <div class="h3 fw-bold mb-0 mt-2 text-primary">
+                        {{ reports | selectattr('status', 'equalto', 'Sedang Diproses') | list | length }}
+                    </div>
+                    <div class="small text-muted mt-1">Dalam investigasi bug</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card-gradient">
+                    <span class="text-success small fw-bold">SELESAI DITANGANI</span>
+                    <div class="h3 fw-bold mb-0 mt-2 text-success">
+                        {{ reports | selectattr('status', 'equalto', 'Selesai') | list | length }}
+                    </div>
+                    <div class="small text-muted mt-1">Solusi sudah diterapkan</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <div>
+                    <h5 class="card-header-title mb-1">
+                        <i class="bi bi-bug text-primary"></i> Pengelolaan Laporan Masalah / Bug (problem_reports)
+                    </h5>
+                    <div class="small text-muted">
+                        Melihat daftar keluhan masuk, memperbarui status penanganan, dan menghapus tiket laporan.
+                    </div>
+                </div>
+
+                <!-- Filter Status Dropdown -->
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted fw-bold">Filter Status:</span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a href="/admin?tab=reports&status=Semua" class="btn btn-outline-secondary {% if not request.args.get('status') or request.args.get('status') == 'Semua' %}active{% endif %}">Semua</a>
+                        <a href="/admin?tab=reports&status=Menunggu Review" class="btn btn-outline-secondary {% if request.args.get('status') == 'Menunggu Review' %}active{% endif %}">Menunggu Review</a>
+                        <a href="/admin?tab=reports&status=Sedang Diproses" class="btn btn-outline-secondary {% if request.args.get('status') == 'Sedang Diproses' %}active{% endif %}">Diproses</a>
+                        <a href="/admin?tab=reports&status=Selesai" class="btn btn-outline-secondary {% if request.args.get('status') == 'Selesai' %}active{% endif %}">Selesai</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Waktu Kirim</th>
+                            <th style="width: 170px;">Kategori</th>
+                            <th style="width: 180px;">Pelapor / Email</th>
+                            <th>Deskripsi Masalah</th>
+                            <th style="width: 150px;">Status Penanganan</th>
+                            <th style="width: 160px;" class="text-end">Aksi Tindak Lanjut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if reports %}
+                            {% for rep in reports %}
+                                <tr>
+                                    <td>
+                                        <div class="small fw-bold text-dark">{{ rep.created_at[:10] if rep.created_at else '-' }}</div>
+                                        <div class="text-muted" style="font-size: 11px;">{{ rep.created_at[11:16] if rep.created_at and rep.created_at|length >= 16 else '' }} UTC</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border fw-semibold">
+                                            {{ rep.kategori }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="text-dark small fw-semibold text-truncate" style="max-width: 160px;">
+                                            {{ rep.email or 'Anonim' }}
+                                        </div>
+                                        {% if rep.user_id %}
+                                            <div class="text-muted" style="font-size: 10px;" title="{{ rep.user_id }}">
+                                                UID: {{ rep.user_id[:8] }}...
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-dark small" style="max-width: 380px;">
+                                            {{ rep.deskripsi }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if rep.status == 'Menunggu Review' %}
+                                            <span class="badge-status badge-status-pending">
+                                                <i class="bi bi-clock-fill"></i> Menunggu Review
+                                            </span>
+                                        {% elif rep.status == 'Sedang Diproses' %}
+                                            <span class="badge-status badge-status-progress">
+                                                <i class="bi bi-gear-wide-connected"></i> Diproses
+                                            </span>
+                                        {% elif rep.status == 'Selesai' %}
+                                            <span class="badge-status badge-status-done">
+                                                <i class="bi bi-check-circle-fill"></i> Selesai
+                                            </span>
+                                        {% else %}
+                                            <span class="badge-status badge-status-rejected">
+                                                <i class="bi bi-x-circle-fill"></i> {{ rep.status }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 me-1"
+                                                onclick="openReportModal({{ rep | tojson }})">
+                                            <i class="bi bi-pencil-square"></i> Tanggapi
+                                        </button>
+                                        <form action="/admin/reports/delete/{{ rep.id }}" method="POST" class="d-inline"
+                                              onsubmit="return showCustomConfirm(event, this, 'Hapus Laporan Masalah?', 'Apakah Anda yakin ingin menghapus laporan masalah kategori \'{{ rep.kategori }}\' ini dari Supabase?')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2.5">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-shield-check fs-1 d-block mb-2 text-success"></i>
+                                    Tidak ada laporan masalah yang ditemukan di tabel <code>problem_reports</code>.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ======================================================================= -->
+    <!-- TAB 5: BROADCAST NOTIFIKASI SISTEM (notifications)                      -->
+    <!-- ======================================================================= -->
+    {% if active_tab == 'notifications' %}
+        <div class="row g-4">
+            <!-- Formulir Broadcast Baru -->
+            <div class="col-lg-5">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <h5 class="card-header-title mb-0">
+                            <i class="bi bi-megaphone-fill text-primary"></i> Buat Siaran Notifikasi Global
+                        </h5>
+                    </div>
+                    <div class="p-4">
+                        <div class="alert alert-info bg-info bg-opacity-10 border-0 rounded-3 small mb-3">
+                            <i class="bi bi-broadcast"></i> Notifikasi ini akan disiarkan ke <strong>seluruh pengguna aplikasi</strong> dengan menyetel <code>user_id = NULL</code> di tabel Supabase <code>notifications</code>.
+                        </div>
+
+                        <form action="/admin/notifications/create" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-dark">Judul Pengumuman</label>
+                                <input type="text" name="title" class="form-control rounded-3" required
+                                       placeholder="Cth: Peringatan Hoaks Baru / Update Sistem">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-dark">Isi Pesan Siaran</label>
+                                <textarea name="description" rows="3" class="form-control rounded-3" required
+                                          placeholder="Jelaskan detail pesan atau arahan verifikasi kepada seluruh pengguna..."></textarea>
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-dark">Tagar / Kategori</label>
+                                    <select name="tag_label" class="form-select rounded-3">
+                                        <option value="Info" selected>Info</option>
+                                        <option value="Waspada Hoaks">Waspada Hoaks</option>
+                                        <option value="Verifikasi">Verifikasi</option>
+                                        <option value="Update Sistem">Update Sistem</option>
+                                        <option value="Literasi">Literasi</option>
+                                        <option value="Tanggapan Tim">Tanggapan Tim</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-dark">Label Waktu</label>
+                                    <input type="text" name="time_label" class="form-control rounded-3" value="Baru saja">
+                                </div>
+                            </div>
+
+                            <div class="form-check form-switch mb-4">
+                                <input class="form-check-input" type="checkbox" name="is_unread" id="notifUnreadSwitch" checked>
+                                <label class="form-check-label small" for="notifUnreadSwitch">Tandai sebagai pesan baru (belum dibaca)</label>
+                            </div>
+
+                            <button type="submit" class="btn btn-brand-primary w-100">
+                                <i class="bi bi-send-fill"></i> Kirim Broadcast Sekarang
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Riwayat Notifikasi -->
+            <div class="col-lg-7">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <div>
+                            <h5 class="card-header-title mb-1">
+                                <i class="bi bi-bell-fill text-primary"></i> Riwayat Notifikasi (notifications)
+                            </h5>
+                            <div class="small text-muted">Daftar notifikasi siaran global dan aktivitas pengguna</div>
+                        </div>
+
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="/admin?tab=notifications&type=all" class="btn btn-outline-secondary {% if not request.args.get('type') or request.args.get('type') == 'all' %}active{% endif %}">Semua</a>
+                            <a href="/admin?tab=notifications&type=broadcast" class="btn btn-outline-secondary {% if request.args.get('type') == 'broadcast' %}active{% endif %}">Broadcast</a>
+                            <a href="/admin?tab=notifications&type=personal" class="btn btn-outline-secondary {% if request.args.get('type') == 'personal' %}active{% endif %}">Personal</a>
+                        </div>
+                    </div>
+
+                    <div class="p-0">
+                        {% if notifications %}
+                            <div class="list-group list-group-flush">
+                                {% for notif in notifications %}
+                                    <div class="list-group-item p-3.5 border-bottom">
+                                        <div class="d-flex align-items-start justify-content-between gap-3">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <div class="stat-icon-box bg-light text-primary rounded-circle" style="width: 40px; height: 40px;">
+                                                    <i class="bi bi-bell"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                                        <span class="fw-bold text-dark">{{ notif.title }}</span>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size: 11px;">
+                                                            {{ notif.tag_label }}
+                                                        </span>
+                                                        {% if not notif.user_id %}
+                                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 10px;">
+                                                                <i class="bi bi-broadcast"></i> Broadcast Global
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border" style="font-size: 10px;">
+                                                                Personal
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <p class="text-muted small mb-1">{{ notif.description }}</p>
+                                                    <div class="small text-muted" style="font-size: 11px;">
+                                                        <i class="bi bi-clock"></i> {{ notif.time_label }} &bull; {{ notif.created_at[:16].replace('T', ' ') if notif.created_at else '' }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <form action="/admin/notifications/delete/{{ notif.id }}" method="POST"
+                                                  onsubmit="return showCustomConfirm(event, this, 'Hapus Notifikasi?', 'Apakah Anda yakin ingin menghapus notifikasi \'{{ notif.title | replace('\'', '\\\'') }}\' ini dari Supabase?')">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle p-1" title="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
+                                Belum ada notifikasi di tabel <code>notifications</code>.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ======================================================================= -->
+    <!-- TAB 6: PENGATURAN & DIAGNOSTIK SUPABASE (settings)                      -->
+    <!-- ======================================================================= -->
+    {% if active_tab == 'settings' %}
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <h5 class="card-header-title mb-0">
+                            <i class="bi bi-sliders text-primary"></i> Kredensial Supabase Cloud
+                        </h5>
+                    </div>
+                    <div class="p-4">
+                        <form action="/admin/config/save" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-dark">Project URL Supabase</label>
+                                <input type="url" name="url" class="form-control rounded-3" required
+                                       value="{{ config.url }}" placeholder="https://xxxxxxxx.supabase.co">
+                                <div class="form-text">Ditemukan di Project Settings > API > Project URL.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-dark">Anon Public Key</label>
+                                <textarea name="anon_key" rows="2" class="form-control rounded-3 font-monospace small" required>{{ config.anon_key }}</textarea>
+                                <div class="form-text">Kunci publik aman untuk operasi client.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label class="form-label fw-bold small text-dark mb-0">Service Role Secret Key (Opsional - Direkomendasikan)</label>
+                                    <span class="badge bg-warning text-dark" style="font-size: 10px;">Bypass RLS</span>
+                                </div>
+                                <textarea name="service_role_key" rows="2" class="form-control rounded-3 font-monospace small"
+                                          placeholder="eyJhbGciOi... (Opsional, untuk hak akses admin penuh)">{{ config.service_role_key if config.service_role_key else '' }}</textarea>
+                                <div class="form-text">
+                                    Dengan Service Role Key, Flask backend dapat mengelola seluruh tabel Supabase tanpa terhalang batasan Row Level Security.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-brand-primary">
+                                <i class="bi bi-floppy-fill"></i> Simpan Konfigurasi Kredensial
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <h5 class="card-header-title mb-0">
+                            <i class="bi bi-activity text-primary"></i> Status Akses Tabel Supabase
+                        </h5>
+                    </div>
+                    <div class="p-4">
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light mb-3">
+                            <div>
+                                <div class="fw-bold">Status Koneksi Global</div>
+                                <div class="small text-muted">{{ config.url }}</div>
+                            </div>
+                            {% if conn_status.connected %}
+                                <span class="badge bg-success text-white px-3 py-1.5 rounded-pill">
+                                    <i class="bi bi-check2-circle"></i> Terhubung Sukses
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger text-white px-3 py-1.5 rounded-pill">
+                                    <i class="bi bi-x-circle"></i> Gagal Terhubung
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="list-group list-group-flush rounded-3 border">
+                            {% for tbl, status in conn_status.tables.items() %}
+                                <div class="list-group-item d-flex align-items-center justify-content-between py-2.5">
+                                    <div>
+                                        <code class="fw-bold text-dark">{{ tbl }}</code>
+                                    </div>
+                                    <div>
+                                        {% if status.accessible %}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                                <i class="bi bi-check-lg"></i> Akses OK
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                                <i class="bi bi-exclamation-circle"></i> {{ status.status }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill w-100" data-bs-toggle="modal" data-bs-target="#modalSqlMigration">
+                                <i class="bi bi-code-square"></i> Buka SQL Migration Lengkap untuk Supabase Editor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+</main>
+
+<!-- ======================================================================= -->
+<!-- MODAL: TAMBAH / EDIT TIPS LITERASI                                      -->
+<!-- ======================================================================= -->
+<div class="modal fade" id="modalAddTip" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom p-4">
+                <h5 class="modal-title fw-bold" id="modalTipTitle">Tambah Tips Literasi Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formTip" action="/admin/tips/create" method="POST">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Judul Tips</label>
+                        <input type="text" name="title" id="tipInputTitle" class="form-control rounded-3" required
+                               placeholder="Cth: Periksa sumber informasi">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Deskripsi Tips</label>
+                        <textarea name="description" id="tipInputDesc" rows="3" class="form-control rounded-3" required
+                                  placeholder="Pastikan artikel diterbitkan oleh portal berita resmi..."></textarea>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Nomor Tips</label>
+                            <input type="text" name="tip_number" id="tipInputNumber" class="form-control rounded-3" required
+                                   value="Tips #1" placeholder="Tips #1">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Urutan Tampil (order_index)</label>
+                            <input type="number" name="order_index" id="tipInputOrder" class="form-control rounded-3" required value="1">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Icon Name</label>
+                            <select name="icon_name" id="tipInputIcon" class="form-select rounded-3">
+                                <option value="fact_check">fact_check</option>
+                                <option value="campaign">campaign</option>
+                                <option value="date_range">date_range</option>
+                                <option value="psychology">psychology</option>
+                                <option value="verified">verified</option>
+                                <option value="search">search</option>
+                                <option value="lightbulb">lightbulb</option>
+                                <option value="security">security</option>
+                                <option value="warning">warning</option>
+                                <option value="article">article</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Kategori</label>
+                            <input type="text" name="category" id="tipInputCat" class="form-control rounded-3" value="Umum">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Warna Background Hex</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" id="pickerBg" value="#D1FAE5" oninput="document.getElementById('tipInputBgHex').value=this.value">
+                                <input type="text" name="icon_bg_hex" id="tipInputBgHex" class="form-control" value="#D1FAE5">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Warna Icon Hex</label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" id="pickerColor" value="#059669" oninput="document.getElementById('tipInputColorHex').value=this.value">
+                                <input type="text" name="icon_color_hex" id="tipInputColorHex" class="form-control" value="#059669">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="tipInputActive" checked>
+                        <label class="form-check-label small" for="tipInputActive">Aktifkan tips di Carousel Beranda mobile app</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-3.5">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-brand-primary rounded-pill px-4">Simpan Tips</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- MODAL: TAMBAH / EDIT LANGKAH PRINSIP PANDUAN                            -->
+<!-- ======================================================================= -->
+<div class="modal fade" id="modalAddPrinciple" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom p-4">
+                <h5 class="modal-title fw-bold" id="modalPrincipleTitle">Tambah Langkah Prinsip Panduan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formPrinciple" action="/admin/principles/create" method="POST">
+                <div class="modal-body p-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-dark">Nomor Langkah (step_number)</label>
+                            <input type="text" name="step_number" id="principleInputStep" class="form-control rounded-3" required value="1" placeholder="1">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-dark">Urutan Tampil (order_index)</label>
+                            <input type="number" name="order_index" id="principleInputOrder" class="form-control rounded-3" required value="1">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-dark">Judul Langkah</label>
+                            <input type="text" name="title" id="principleInputTitle" class="form-control rounded-3" required placeholder="Cth: Prinsip Uji Informasi">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-dark">Deskripsi Ringkas</label>
+                        <textarea name="description" id="principleInputDesc" rows="3" class="form-control rounded-3" required
+                                  placeholder="Karya jurnalistik profesional selalu memverifikasi kebenaran materi..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label fw-bold small text-dark mb-0">Sub-Poin Verifikasi (sub_points JSONB)</label>
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addPrincipleSubPoint()">
+                                <i class="bi bi-plus"></i> Tambah Sub-Poin
+                            </button>
+                        </div>
+                        <div id="principleSubPointsContainer" class="d-flex flex-column gap-2">
+                            <!-- Injected by script -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-3.5">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-brand-primary rounded-pill px-4">Simpan Langkah</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- MODAL: TINDAK LANJUT LAPORAN MASALAH                                    -->
+<!-- ======================================================================= -->
+<div class="modal fade" id="modalReportAction" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom p-4">
+                <h5 class="modal-title fw-bold">Tindak Lanjut Laporan Masalah</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formReportAction" method="POST">
+                <div class="modal-body p-4">
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="badge bg-secondary" id="reportModalCategory">Kategori</span>
+                            <span class="small text-muted" id="reportModalDate">Tanggal</span>
+                        </div>
+                        <div class="fw-bold text-dark mb-1" id="reportModalEmail">Email</div>
+                        <p class="small text-muted mb-0" id="reportModalDesc">Deskripsi lengkap</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Perbarui Status Penanganan</label>
+                        <select name="status" id="reportModalStatusSelect" class="form-select rounded-3">
+                            <option value="Menunggu Review">Menunggu Review</option>
+                            <option value="Sedang Diproses">Sedang Diproses</option>
+                            <option value="Selesai">Selesai</option>
+                            <option value="Ditolak">Ditolak</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-3.5">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-brand-primary rounded-pill px-4">Simpan Pembaruan Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- MODAL: SQL MIGRATION VIEW                                               -->
+<!-- ======================================================================= -->
+<div class="modal fade" id="modalSqlMigration" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom p-4">
+                <h5 class="modal-title fw-bold">SQL Migration Supabase (RLS Admin Full Access)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="small text-muted mb-3">
+                    Salin script SQL di bawah ini dan jalankan pada <strong>Supabase Dashboard > SQL Editor</strong> untuk memastikan seluruh tabel memiliki hak akses penuh bagi admin:
+                </p>
+                <div class="position-relative">
+                    <pre class="bg-dark text-light p-3 rounded-3 font-monospace small" style="max-height: 320px; overflow-y: auto;" id="sqlScriptContent">-- Kebijakan RLS Admin Full Access untuk HoaxCheck
+DROP POLICY IF EXISTS "Admin full access for literacy_tips" ON public.literacy_tips;
+CREATE POLICY "Admin full access for literacy_tips" ON public.literacy_tips FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin full access for guide_principles" ON public.guide_principles;
+CREATE POLICY "Admin full access for guide_principles" ON public.guide_principles FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin full access for guide_contents" ON public.guide_contents;
+CREATE POLICY "Admin full access for guide_contents" ON public.guide_contents FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin full access for app_info" ON public.app_info;
+CREATE POLICY "Admin full access for app_info" ON public.app_info FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin full access for problem_reports" ON public.problem_reports;
+CREATE POLICY "Admin full access for problem_reports" ON public.problem_reports FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin full access for notifications" ON public.notifications;
+CREATE POLICY "Admin full access for notifications" ON public.notifications FOR ALL USING (true) WITH CHECK (true);</pre>
+                    <button type="button" class="btn btn-outline-light btn-sm position-absolute top-0 end-0 m-2 rounded-pill"
+                            onclick="copySqlScript()">
+                        <i class="bi bi-clipboard"></i> Salin SQL
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer border-top p-3.5">
+                <button type="button" class="btn btn-brand-primary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- MODAL: CUSTOM CONFIRMATION DIALOG                                       -->
+<!-- ======================================================================= -->
+<div class="modal fade" id="modalCustomConfirm" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content rounded-4 border-0 shadow-lg text-center p-3">
+            <div class="modal-body p-4 pt-2">
+                <div class="confirm-icon-box mx-auto mb-3" id="confirmModalIconBox">
+                    <i class="bi bi-trash3-fill text-danger fs-1" id="confirmModalIcon"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2" id="confirmModalTitle">Hapus Data?</h5>
+                <p class="text-muted small mb-4" id="confirmModalText" style="line-height: 1.5;">
+                    Apakah Anda yakin ingin menghapus data ini dari Supabase? Tindakan ini tidak dapat dibatalkan.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-confirm-cancel rounded-pill px-4 flex-grow-1" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <button type="button" class="btn btn-confirm-danger rounded-pill px-4 flex-grow-1" id="confirmModalSubmitBtn">
+                        <i class="bi bi-trash3-fill me-1"></i> Ya, Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- TOAST: CUSTOM TOAST NOTIFICATION                                        -->
+<!-- ======================================================================= -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1099;">
+    <div id="customToast" class="toast align-items-center text-white border-0 rounded-4 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex p-2">
+            <div class="toast-body d-flex align-items-center gap-2" id="customToastBody">
+                <i class="bi bi-check-circle-fill fs-5" id="customToastIcon"></i>
+                <span id="customToastMessage" class="fw-semibold">Operasi berhasil dilakukan.</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Edit Tip Modal Handler
+    function openEditTipModal(tip) {
+        document.getElementById('modalTipTitle').innerText = 'Edit Tips Literasi';
+        document.getElementById('formTip').action = '/admin/tips/update/' + tip.id;
+        document.getElementById('tipInputTitle').value = tip.title || '';
+        document.getElementById('tipInputDesc').value = tip.description || '';
+        document.getElementById('tipInputNumber').value = tip.tip_number || 'Tips #1';
+        document.getElementById('tipInputOrder').value = tip.order_index || 0;
+        document.getElementById('tipInputIcon').value = tip.icon_name || 'fact_check';
+        document.getElementById('tipInputCat').value = tip.category || 'Umum';
+        document.getElementById('tipInputBgHex').value = tip.icon_bg_hex || '#D1FAE5';
+        document.getElementById('pickerBg').value = tip.icon_bg_hex || '#D1FAE5';
+        document.getElementById('tipInputColorHex').value = tip.icon_color_hex || '#059669';
+        document.getElementById('pickerColor').value = tip.icon_color_hex || '#059669';
+        document.getElementById('tipInputActive').checked = tip.is_active === true;
+        
+        new bootstrap.Modal(document.getElementById('modalAddTip')).show();
+    }
+
+    // Reset Tip Modal to Create Mode when closed
+    document.getElementById('modalAddTip').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('modalTipTitle').innerText = 'Tambah Tips Literasi Baru';
+        document.getElementById('formTip').action = '/admin/tips/create';
+        document.getElementById('formTip').reset();
+    });
+
+    // Principle Sub-point repeater
+    function addPrincipleSubPoint(icon = 'check', text = '') {
+        const container = document.getElementById('principleSubPointsContainer');
+        const div = document.createElement('div');
+        div.className = 'input-group';
+        div.innerHTML = `
+            <span class="input-group-text bg-white"><i class="bi bi-check2-circle text-primary"></i></span>
+            <input type="text" name="sub_icons[]" class="form-control" style="max-width: 140px;" value="${icon}" placeholder="Icon name">
+            <input type="text" name="sub_texts[]" class="form-control" value="${text}" placeholder="Teks poin verifikasi" required>
+            <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+        `;
+        container.appendChild(div);
+    }
+
+    function openEditPrincipleModal(principle) {
+        document.getElementById('modalPrincipleTitle').innerText = 'Edit Langkah Prinsip Panduan';
+        document.getElementById('formPrinciple').action = '/admin/principles/update/' + principle.id;
+        document.getElementById('principleInputStep').value = principle.step_number || '1';
+        document.getElementById('principleInputOrder').value = principle.order_index || 0;
+        document.getElementById('principleInputTitle').value = principle.title || '';
+        document.getElementById('principleInputDesc').value = principle.description || '';
+
+        const container = document.getElementById('principleSubPointsContainer');
+        container.innerHTML = '';
+        if (principle.sub_points && Array.isArray(principle.sub_points)) {
+            principle.sub_points.forEach(sp => {
+                addPrincipleSubPoint(sp.icon || 'check', sp.text || '');
+            });
+        } else {
+            addPrincipleSubPoint('check', '');
+        }
+
+        new bootstrap.Modal(document.getElementById('modalAddPrinciple')).show();
+    }
+
+    document.getElementById('modalAddPrinciple').addEventListener('show.bs.modal', function () {
+        const container = document.getElementById('principleSubPointsContainer');
+        if (container.children.length === 0) {
+            addPrincipleSubPoint('business', 'Menghubungi pihak berwenang atau narasumber primer secara langsung.');
+            addPrincipleSubPoint('warning', 'Menghindari sensasionalisme tanpa menyertakan bukti teruji.');
+        }
+    });
+
+    // Checklist item repeater
+    function addChecklistItem(text = '') {
+        const container = document.getElementById('checklistItemsContainer');
+        const div = document.createElement('div');
+        div.className = 'input-group';
+        div.innerHTML = `
+            <span class="input-group-text bg-white"><i class="bi bi-check-square text-success"></i></span>
+            <input type="text" name="checklist_items[]" class="form-control" value="${text}" placeholder="Butir checklist verifikasi baru..." required>
+            <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+        `;
+        container.appendChild(div);
+    }
+
+    // App info Pills repeater
+    function addPillItem(text = '') {
+        const container = document.getElementById('pillsContainer');
+        const div = document.createElement('div');
+        div.className = 'input-group';
+        div.style.width = 'auto';
+        div.innerHTML = `
+            <input type="text" name="pills[]" class="form-control form-control-sm" value="${text}" placeholder="Highlight baru" style="width: 180px;">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+        `;
+        container.appendChild(div);
+    }
+
+    // App info Steps repeater
+    function addStepItem(num = '01', icon = 'edit_note', title = '', desc = '') {
+        const container = document.getElementById('stepsContainer');
+        const div = document.createElement('div');
+        div.className = 'repeater-card';
+        div.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex gap-2">
+                    <input type="text" name="step_numbers[]" class="form-control form-control-sm" style="width: 70px;" value="${num}" placeholder="01">
+                    <input type="text" name="step_icons[]" class="form-control form-control-sm" style="width: 120px;" value="${icon}" placeholder="edit_note">
+                </div>
+                <button type="button" class="btn btn-link text-danger p-0" onclick="this.closest('.repeater-card').remove()">
+                    <i class="bi bi-trash"></i> Hapus Langkah
+                </button>
+            </div>
+            <input type="text" name="step_titles[]" class="form-control form-control-sm mb-2" value="${title}" placeholder="Judul Langkah">
+            <textarea name="step_descs[]" rows="2" class="form-control form-control-sm" placeholder="Deskripsi tahapan langkah...">${desc}</textarea>
+        `;
+        container.appendChild(div);
+    }
+
+    // Problem Report Modal
+    function openReportModal(report) {
+        document.getElementById('formReportAction').action = '/admin/reports/update-status/' + report.id;
+        document.getElementById('reportModalCategory').innerText = report.kategori || 'Masalah';
+        document.getElementById('reportModalDate').innerText = (report.created_at || '').substring(0, 10);
+        document.getElementById('reportModalEmail').innerText = report.email ? 'Pelapor: ' + report.email : 'Pelapor: Pengguna Anonim';
+        document.getElementById('reportModalDesc').innerText = report.deskripsi || '-';
+        document.getElementById('reportModalStatusSelect').value = report.status || 'Menunggu Review';
+
+        new bootstrap.Modal(document.getElementById('modalReportAction')).show();
+    }
+
+    // Custom Confirmation Dialog Function
+    let activeConfirmForm = null;
+
+    function showCustomConfirm(event, form, title = 'Hapus Data?', text = 'Apakah Anda yakin ingin menghapus data ini dari Supabase? Tindakan ini tidak dapat dibatalkan.') {
+        if (event) {
+            event.preventDefault();
+        }
+        activeConfirmForm = form;
+        document.getElementById('confirmModalTitle').innerText = title;
+        document.getElementById('confirmModalText').innerText = text;
+
+        const confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCustomConfirm'));
+        confirmModal.show();
+        return false;
+    }
+
+    document.getElementById('confirmModalSubmitBtn').addEventListener('click', function() {
+        if (activeConfirmForm) {
+            const confirmModal = bootstrap.Modal.getInstance(document.getElementById('modalCustomConfirm'));
+            if (confirmModal) confirmModal.hide();
+            activeConfirmForm.submit();
+        }
+    });
+
+    // Custom Toast Notification Function
+    function showCustomToast(message, type = 'success') {
+        const toastEl = document.getElementById('customToast');
+        const msgEl = document.getElementById('customToastMessage');
+        const iconEl = document.getElementById('customToastIcon');
+
+        msgEl.innerText = message;
+        toastEl.className = 'toast align-items-center text-white border-0 rounded-4 shadow-lg ' + (type === 'success' ? 'bg-success' : (type === 'danger' ? 'bg-danger' : 'bg-primary'));
+        iconEl.className = 'bi fs-5 ' + (type === 'success' ? 'bi-check-circle-fill' : (type === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'));
+
+        const toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500 });
+        toast.show();
+    }
+
+    // Copy SQL Script with Custom Toast
+    function copySqlScript() {
+        const text = document.getElementById('sqlScriptContent').innerText;
+        navigator.clipboard.writeText(text).then(function() {
+            showCustomToast('Script SQL berhasil disalin ke clipboard!', 'success');
+        }).catch(function() {
+            showCustomToast('Gagal menyalin script SQL.', 'danger');
+        });
+    }
+</script>
+
+</body>
+</html>

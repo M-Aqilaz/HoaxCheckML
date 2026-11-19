@@ -29,6 +29,11 @@ try:
 except ImportError:
     import cms_service
 
+try:
+    from web.supabase_service import supabase_service
+except ImportError:
+    from supabase_service import supabase_service
+
 app = Flask(__name__)
 app.secret_key = "hoaxcheck-secret-key-pbl5"
 
@@ -1069,6 +1074,342 @@ def api_mobile_content():
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "favicon.png",
+        mimetype="image/png"
+    )
+
+
+# -------------------------------------------------------------
+# ADMIN SUPABASE ROUTES
+# -------------------------------------------------------------
+
+@app.route("/admin")
+def admin():
+    active_tab = request.args.get("tab", "tips")
+    status_filter = request.args.get("status", "Semua")
+    notif_type = request.args.get("type", "all")
+
+    # Fast connection status check (only do full table diagnostics if on settings tab)
+    if active_tab == "settings":
+        conn_status = supabase_service.test_connection()
+    else:
+        conn_status = {
+            "connected": bool(supabase_service.url and supabase_service.active_key),
+            "using_service_role": supabase_service.is_using_service_role,
+            "url": supabase_service.url,
+            "tables": {}
+        }
+
+    tips = []
+    principles = []
+    guide_content = None
+    app_info = None
+    reports = []
+    notifications = []
+
+    # Lazy-load ONLY data for the active tab (instant sub-second response)
+    if active_tab == "tips":
+        try:
+            tips = supabase_service.get_tips()
+        except Exception as e:
+            print(f"[Admin] Error get_tips: {e}")
+    elif active_tab == "guides":
+        try:
+            principles = supabase_service.get_principles()
+            guide_content = supabase_service.get_guide_content()
+        except Exception as e:
+            print(f"[Admin] Error get_principles: {e}")
+    elif active_tab == "app_info":
+        try:
+            app_info = supabase_service.get_app_info()
+        except Exception as e:
+            print(f"[Admin] Error get_app_info: {e}")
+    elif active_tab == "reports":
+        try:
+            reports = supabase_service.get_problem_reports(status=status_filter)
+        except Exception as e:
+            print(f"[Admin] Error get_problem_reports: {e}")
+    elif active_tab == "notifications":
+        try:
+            notifications = supabase_service.get_notifications(filter_type=notif_type)
+        except Exception as e:
+            print(f"[Admin] Error get_notifications: {e}")
+
+    config = {
+        "url": supabase_service.url,
+        "anon_key": supabase_service.anon_key,
+        "service_role_key": supabase_service.service_role_key,
+        "has_service_role": supabase_service.is_using_service_role
+    }
+
+    return render_template(
+        "admin.html",
+        active_tab=active_tab,
+        tips=tips,
+        principles=principles,
+        guide_content=guide_content,
+        app_info=app_info,
+        reports=reports,
+        notifications=notifications,
+        conn_status=conn_status,
+        config=config
+    )
+
+
+@app.route("/admin/tips/create", methods=["POST"])
+def admin_tips_create():
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    tip_number = request.form.get("tip_number", "Tips").strip()
+    icon_name = request.form.get("icon_name", "fact_check").strip()
+    category = request.form.get("category", "Umum").strip()
+    icon_bg_hex = request.form.get("icon_bg_hex", "#D1FAE5").strip()
+    icon_color_hex = request.form.get("icon_color_hex", "#059669").strip()
+    order_index = int(request.form.get("order_index", 0) or 0)
+    is_active = request.form.get("is_active") in ["on", "true", "True", True]
+
+    payload = {
+        "title": title,
+        "description": description,
+        "tip_number": tip_number,
+        "icon_name": icon_name,
+        "category": category,
+        "icon_bg_hex": icon_bg_hex,
+        "icon_color_hex": icon_color_hex,
+        "order_index": order_index,
+        "is_active": is_active
+    }
+    ok, msg = supabase_service.create_tip(payload)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="tips"))
+
+
+@app.route("/admin/tips/update/<tip_id>", methods=["POST"])
+def admin_tips_update(tip_id):
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    tip_number = request.form.get("tip_number", "Tips").strip()
+    icon_name = request.form.get("icon_name", "fact_check").strip()
+    category = request.form.get("category", "Umum").strip()
+    icon_bg_hex = request.form.get("icon_bg_hex", "#D1FAE5").strip()
+    icon_color_hex = request.form.get("icon_color_hex", "#059669").strip()
+    order_index = int(request.form.get("order_index", 0) or 0)
+    is_active = request.form.get("is_active") in ["on", "true", "True", True]
+
+    payload = {
+        "title": title,
+        "description": description,
+        "tip_number": tip_number,
+        "icon_name": icon_name,
+        "category": category,
+        "icon_bg_hex": icon_bg_hex,
+        "icon_color_hex": icon_color_hex,
+        "order_index": order_index,
+        "is_active": is_active
+    }
+    ok, msg = supabase_service.update_tip(tip_id, payload)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="tips"))
+
+
+@app.route("/admin/tips/toggle/<tip_id>", methods=["POST"])
+def admin_tips_toggle(tip_id):
+    new_state = request.form.get("is_active") in ["true", "True", True, "on"]
+    ok, msg = supabase_service.toggle_tip_status(tip_id, new_state)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="tips"))
+
+
+@app.route("/admin/tips/delete/<tip_id>", methods=["POST"])
+def admin_tips_delete(tip_id):
+    ok, msg = supabase_service.delete_tip(tip_id)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="tips"))
+
+
+@app.route("/admin/principles/create", methods=["POST"])
+def admin_principles_create():
+    step_number = request.form.get("step_number", "1").strip()
+    order_index = int(request.form.get("order_index", 0) or 0)
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+
+    sub_icons = request.form.getlist("sub_icons[]")
+    sub_texts = request.form.getlist("sub_texts[]")
+
+    sub_points = []
+    for icon, text in zip(sub_icons, sub_texts):
+        if text.strip():
+            sub_points.append({"icon": icon.strip() or "check", "text": text.strip()})
+
+    payload = {
+        "step_number": step_number,
+        "order_index": order_index,
+        "title": title,
+        "description": description,
+        "sub_points": sub_points
+    }
+    ok, msg = supabase_service.create_principle(payload)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="guides"))
+
+
+@app.route("/admin/principles/update/<principle_id>", methods=["POST"])
+def admin_principles_update(principle_id):
+    step_number = request.form.get("step_number", "1").strip()
+    order_index = int(request.form.get("order_index", 0) or 0)
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+
+    sub_icons = request.form.getlist("sub_icons[]")
+    sub_texts = request.form.getlist("sub_texts[]")
+
+    sub_points = []
+    for icon, text in zip(sub_icons, sub_texts):
+        if text.strip():
+            sub_points.append({"icon": icon.strip() or "check", "text": text.strip()})
+
+    payload = {
+        "step_number": step_number,
+        "order_index": order_index,
+        "title": title,
+        "description": description,
+        "sub_points": sub_points
+    }
+    ok, msg = supabase_service.update_principle(principle_id, payload)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="guides"))
+
+
+@app.route("/admin/principles/delete/<principle_id>", methods=["POST"])
+def admin_principles_delete(principle_id):
+    ok, msg = supabase_service.delete_principle(principle_id)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="guides"))
+
+
+@app.route("/admin/guide-content/save", methods=["POST"])
+def admin_guide_content_save():
+    quote_text = request.form.get("quote_text", "").strip()
+    checklist_title = request.form.get("checklist_title", "Hal yang Perlu Diperhatikan").strip()
+    checklist_subtitle = request.form.get("checklist_subtitle", "").strip()
+    checklist_items_raw = request.form.getlist("checklist_items[]")
+
+    checklist_items = [itm.strip() for itm in checklist_items_raw if itm.strip()]
+
+    payload = {
+        "quote_text": quote_text,
+        "checklist_title": checklist_title,
+        "checklist_subtitle": checklist_subtitle,
+        "checklist_items": checklist_items
+    }
+    ok, msg = supabase_service.save_guide_content(payload)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="guides"))
+
+
+@app.route("/admin/app-info/save", methods=["POST"])
+def admin_app_info_save():
+    app_name = request.form.get("app_name", "HoaxCheck").strip()
+    app_version = request.form.get("app_version", "HoaxCheck v1.0.0").strip()
+    tagline = request.form.get("tagline", "").strip()
+    header_description = request.form.get("header_description", "").strip()
+    about_description = request.form.get("about_description", "").strip()
+    disclaimer_text = request.form.get("disclaimer_text", "").strip()
+
+    pills_raw = request.form.getlist("pills[]")
+    pills = [p.strip() for p in pills_raw if p.strip()]
+
+    step_nums = request.form.getlist("step_numbers[]")
+    step_icons = request.form.getlist("step_icons[]")
+    step_titles = request.form.getlist("step_titles[]")
+    step_descs = request.form.getlist("step_descs[]")
+
+    steps = []
+    for num, icon, title, desc in zip(step_nums, step_icons, step_titles, step_descs):
+        if title.strip():
+            steps.append({
+                "number": num.strip() or "01",
+                "icon": icon.strip() or "edit_note",
+                "title": title.strip(),
+                "description": desc.strip()
+            })
+
+    payload = {
+        "app_name": app_name,
+        "app_version": app_version,
+        "tagline": tagline,
+        "header_description": header_description,
+        "about_description": about_description,
+        "disclaimer_text": disclaimer_text,
+        "pills": pills,
+        "steps": steps
+    }
+    ok, msg = supabase_service.save_app_info(payload)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="app_info"))
+
+
+@app.route("/admin/reports/update-status/<report_id>", methods=["POST"])
+def admin_reports_update_status(report_id):
+    new_status = request.form.get("status", "Menunggu Review").strip()
+    ok, msg = supabase_service.update_report_status(report_id, new_status)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="reports"))
+
+
+@app.route("/admin/reports/delete/<report_id>", methods=["POST"])
+def admin_reports_delete(report_id):
+    ok, msg = supabase_service.delete_report(report_id)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="reports"))
+
+
+@app.route("/admin/notifications/create", methods=["POST"])
+def admin_notifications_create():
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    time_label = request.form.get("time_label", "Baru saja").strip()
+    tag_label = request.form.get("tag_label", "Info").strip()
+    is_unread = request.form.get("is_unread") in ["on", "true", "True", True]
+
+    payload = {
+        "title": title,
+        "description": description,
+        "time_label": time_label,
+        "tag_label": tag_label,
+        "is_unread": is_unread
+    }
+    ok, msg = supabase_service.create_broadcast_notification(payload)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="notifications"))
+
+
+@app.route("/admin/notifications/delete/<notif_id>", methods=["POST"])
+def admin_notifications_delete(notif_id):
+    ok, msg = supabase_service.delete_notification(notif_id)
+    flash(msg, "success" if ok else "danger")
+    return redirect(url_for("admin", tab="notifications"))
+
+
+@app.route("/admin/config/save", methods=["POST"])
+def admin_config_save():
+    url = request.form.get("url", "").strip()
+    anon_key = request.form.get("anon_key", "").strip()
+    service_role_key = request.form.get("service_role_key", "").strip()
+
+    ok = supabase_service.save_config(url, anon_key, service_role_key)
+    if ok:
+        flash("Konfigurasi kredensial Supabase berhasil disimpan.", "success")
+    else:
+        flash("Gagal menyimpan konfigurasi Supabase.", "danger")
+    return redirect(url_for("admin", tab="settings"))
 
 
 if __name__ == "__main__":
