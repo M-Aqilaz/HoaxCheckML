@@ -13,3 +13,8 @@ venv/
 Thumbs.db
 
 Dokumen Perencanaan - HoaxCheck.xlsx
+
+# Large Model Weights & Training Checkpoints
+*.safetensors
+*.pt
+checkpoints/

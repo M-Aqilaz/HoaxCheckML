@@ -4,122 +4,188 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Administrator — HoaxCheck Studio</title>
-    <!-- Fonts: Design System Inter -->
+    <!-- Favicon / Tab Logo -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        html {
-            font-size: 13.5px;
-        }
-
         :root {
-            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --primary: #006c4e;
             --primary-base: #1ca379;
             --primary-dark: #00513a;
-            --primary-subtle: #e6f8f0;
-            --primary-border: #82f8c8;
-            --neutral-darkest: #1b1c1d;
-            --neutral-dark: #242526;
-            --neutral-border: #e3e2e3;
+            --secondary: #5ac596;
+            --neutral: #242526;
+            --neutral-border: #e4e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            background-color: #1b1c1d;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(28, 163, 121, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(0, 108, 78, 0.2) 0px, transparent 50%);
+            background: radial-gradient(circle at 50% 0%, #1f2724 0%, #181b1e 70%, #111315 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: var(--font-family);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 24px;
-            margin: 0;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.011em;
+            color: var(--neutral);
+        }
+
+        /* Ambient glowing background circles in emerald tones */
+        .ambient-glow-1 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(28, 162, 121, 0.16) 0%, rgba(28, 162, 121, 0) 70%);
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            filter: blur(40px);
+        }
+        .ambient-glow-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(90, 197, 150, 0.12) 0%, rgba(90, 197, 150, 0) 70%);
+            bottom: -100px;
+            right: 10%;
+            pointer-events: none;
+            filter: blur(50px);
         }
 
         .login-card {
             background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
             width: 100%;
-            max-width: 420px;
+            max-width: 430px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
         }
 
         .login-header {
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-            border-bottom: 1px solid var(--neutral-border);
-            padding: 32px 24px 24px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #f1f3f5;
+            padding: 36px 28px 24px 28px;
             text-align: center;
         }
 
         .brand-icon {
-            width: 58px;
-            height: 58px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
-            color: #ffffff;
-            border-radius: 16px;
+            border-radius: 18px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            color: #ffffff;
             font-size: 28px;
-            margin-bottom: 14px;
-            box-shadow: 0 6px 18px rgba(0, 108, 78, 0.35);
+            margin-bottom: 16px;
+            box-shadow: 0 8px 20px rgba(0, 108, 78, 0.28);
+        }
+
+        .login-body {
+            padding: 28px;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            border: 1px solid var(--neutral-border);
+            transition: all 0.2s ease;
         }
 
         .form-control:focus {
             border-color: #1ca379;
-            box-shadow: 0 0 0 4px rgba(28, 163, 121, 0.15);
+            box-shadow: 0 0 0 3px rgba(28, 163, 121, 0.15);
         }
 
-        .btn-ds-primary {
-            background: #006c4e;
+        .input-group-text {
+            border-radius: 12px;
+            border: 1px solid var(--neutral-border);
+            background: #f8fafc;
+            color: #64748b;
+        }
+
+        .credential-box {
+            background: #e6f8f0;
+            border: 1px solid #82f8c8;
+            border-radius: 12px;
+            font-size: 11.5px;
+            color: #00513a;
+        }
+
+        .btn-submit {
+            background-color: #006c4e;
             border-color: #006c4e;
             color: #ffffff;
             border-radius: 9999px;
-            padding: 10px 24px;
+            padding: 12px;
             font-weight: 600;
-            font-size: 0.92rem;
-            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.3);
+            font-size: 0.95rem;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            border: none;
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.25);
         }
 
-        .btn-ds-primary:hover {
-            background: #00513a;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0, 108, 78, 0.4);
+        .btn-submit:hover {
+            background-color: #00513a;
+            border-color: #00513a;
+            box-shadow: 0 6px 20px rgba(0, 81, 58, 0.38);
+            transform: translateY(-1px);
             color: #ffffff;
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .login-footer {
+            background: #f8fafc;
+            border-top: 1px solid #f1f3f5;
+            padding: 16px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
+
+<div class="ambient-glow-1"></div>
+<div class="ambient-glow-2"></div>
 
 <div class="login-card">
     <div class="login-header">
         <div class="brand-icon">
             <i class="bi bi-shield-check"></i>
         </div>
-        <h4 class="fw-bold mb-1" style="color: var(--neutral-darkest); letter-spacing: -0.02em;">HoaxCheck Studio</h4>
-        <p class="text-muted small mb-0">Masuk untuk mengelola dataset & model ML</p>
+        <h4 class="fw-bold mb-1" style="color: #1b1c1d; letter-spacing: -0.02em;">HoaxCheck Studio</h4>
+        <p class="text-muted small mb-0">Masuk untuk mengelola dataset, model ML & CMS</p>
     </div>
 
-    <div class="p-4">
-        <!-- Flash message -->
+    <div class="login-body">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="alert alert-{{ category }} alert-dismissible fade show border-0 py-2 px-3 small mb-3" style="border-radius: 10px;" role="alert">
+              <div class="alert alert-{{ category }} alert-dismissible fade show border-0 py-2 px-3 small mb-3 rounded-pill" role="alert">
                 <i class="bi bi-info-circle-fill me-1"></i>{{ message }}
                 <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
@@ -131,27 +197,31 @@
             <div class="mb-3">
                 <label class="form-label small fw-semibold text-muted">Username</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
-                    <input type="text" name="username" class="form-control border-start-0" placeholder="Masukkan username" value="admin" required autofocus>
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="form-control" placeholder="Masukkan username" value="admin" required autofocus>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label small fw-semibold text-muted">Password</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
-                    <input type="password" name="password" class="form-control border-start-0" placeholder="Masukkan password" value="admin" required>
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="Masukkan password" value="admin" required>
                 </div>
             </div>
 
-            <div class="p-2 mb-3 rounded-3 text-muted border" style="font-size: 11px; background: #e6f8f0; border-color: #82f8c8 !important;">
+            <div class="p-2 mb-3 credential-box">
                 <i class="bi bi-shield-lock-fill me-1" style="color: #006c4e;"></i>Kredensial Default Admin: <strong>admin</strong> / <strong>admin</strong>
             </div>
 
-            <button type="submit" class="btn-ds-primary py-2 mt-2">
-                <i class="bi bi-box-arrow-in-right"></i> Masuk Sekarang
+            <button type="submit" class="btn btn-submit w-100 py-2 fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Masuk Sekarang
             </button>
         </form>
+    </div>
+
+    <div class="login-footer">
+        PBL Semester 5 — Deteksi Berita Hoaks &amp; Literasi Media
     </div>
 </div>
 

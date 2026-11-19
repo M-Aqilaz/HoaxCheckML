@@ -161,7 +161,7 @@
     <div class="card-modern">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover table-preview mb-0">
+                <table class="table table-hover table-preview mb-0">
                     <thead>
                         <tr>
                             <th class="text-center" style="width: 60px;">#</th>
@@ -173,7 +173,7 @@
                     <tbody>
                         {% for row in rows %}
                         <tr>
-                            <td class="text-center fw-bold text-muted">{{ loop.index }}</td>
+                            <td class="ps-4 text-center fw-bold text-muted" style="width: 50px;">{{ loop.index }}</td>
                             {% for col in columns %}
                                 <td title="{{ row[col] }}">{{ row[col] }}</td>
                             {% endfor %}

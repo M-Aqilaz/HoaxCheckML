@@ -34,7 +34,7 @@ try:
 except ImportError:
     from supabase_service import supabase_service
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 app.secret_key = "hoaxcheck-secret-key-pbl5"
 
 # Kredensial Login Admin
@@ -50,6 +50,13 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MODEL_DIR"] = MODEL_DIR
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(MODEL_DIR, exist_ok=True)
+
+@app.route("/static/<path:filename>")
+def static_proxy(filename):
+    static_dir = os.path.join(app.root_path, "static")
+    if os.path.exists(os.path.join(static_dir, filename)):
+        return send_from_directory(static_dir, filename)
+    return send_from_directory(os.path.join(app.root_path, "assets"), filename)
 
 # Sumber Berita Valid Terpercaya (RSS Resmi)
 RSS_SOURCES = {

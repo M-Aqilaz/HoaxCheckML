@@ -33,21 +33,21 @@
     </div>
 
     <div class="col-md-3 col-6">
-        <div class="stat-card-green" style="border-left: 3px solid #ba1a1a;">
+        <div class="stat-card-green" style="border-left: 4px solid #ba1a1a;">
             <div class="text-muted small mb-1" style="font-size: 11px;">Berita Hoaks (Label 1)</div>
             <div class="fs-4 fw-bold text-danger">{{ "{:,}".format(stats.total_hoax_rows) }} baris</div>
         </div>
     </div>
 
     <div class="col-md-3 col-6">
-        <div class="stat-card-green" style="border-left: 3px solid #006c4e;">
+        <div class="stat-card-green" style="border-left: 4px solid #006c4e;">
             <div class="text-muted small mb-1" style="font-size: 11px;">Berita Valid (Label 0)</div>
             <div class="fs-4 fw-bold" style="color: #006c4e;">{{ "{:,}".format(stats.total_valid_rows) }} baris</div>
         </div>
     </div>
 
     <div class="col-md-3 col-6">
-        <div class="stat-card-green" style="border-left: 3px solid #1ca379;">
+        <div class="stat-card-green" style="border-left: 4px solid #1ca379;">
             <div class="text-muted small mb-1" style="font-size: 11px;">Sampel Siap Latih (1:1)</div>
             <div class="fs-4 fw-bold" style="color: #006c4e;">{{ "{:,}".format(stats.balanced_samples) }} data</div>
         </div>
@@ -130,33 +130,40 @@
                         <tr class="dataset-row" data-name="{{ f.name|lower }}" data-type="{% if 'valid' in f.name|lower %}valid{% elif 'hoak' in f.name|lower or 'komdigi' in f.name|lower %}hoax{% else %}other{% endif %}">
                             <td class="ps-3 text-muted">{{ loop.index }}</td>
                             <td>
-                                <strong class="text-dark">{{ f.name }}</strong>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if f.name.endswith('.csv') %}
+                                        <i class="bi bi-filetype-csv fs-5 text-success"></i>
+                                    {% else %}
+                                        <i class="bi bi-filetype-xlsx fs-5 text-primary"></i>
+                                    {% endif %}
+                                    <strong class="text-dark" style="font-size: 13px;">{{ f.name }}</strong>
+                                </div>
                             </td>
                             <td>
                                 {% if 'valid' in f.name|lower %}
-                                    <span class="badge-green-subtle">Valid</span>
+                                    <span class="badge-green-subtle"><i class="bi bi-check-circle me-1"></i>Valid (0)</span>
                                 {% elif 'hoak' in f.name|lower or 'komdigi' in f.name|lower %}
-                                    <span class="badge-danger-subtle">Hoaks</span>
+                                    <span class="badge-danger-subtle"><i class="bi bi-exclamation-triangle me-1"></i>Hoaks (1)</span>
                                 {% else %}
                                     <span class="badge bg-light text-muted border">Umum</span>
                                 {% endif %}
                             </td>
-                            <td>{{ f.size }} KB</td>
-                            <td><span class="badge bg-light text-dark border">{{ f.rows }} baris</span></td>
+                            <td><span class="text-muted" style="font-size: 12px;">{{ f.size }} KB</span></td>
+                            <td><span class="badge bg-light text-dark border">{{ "{:,}".format(f.rows) }} baris</span></td>
                             <td><small class="text-muted">{{ f.modified }}</small></td>
                             <td class="text-end pe-3">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="/preview/{{ f.name }}" class="btn btn-outline-success py-0 px-2" style="font-size: 11px;" title="Preview">
+                                    <a href="/preview/{{ f.name }}" class="btn btn-outline-success py-1 px-2.5" style="font-size: 11px;" title="Preview">
                                         <i class="bi bi-eye"></i> Preview
                                     </a>
-                                    <a href="/download/{{ f.name }}" class="btn btn-outline-secondary py-0 px-2" style="font-size: 11px;" title="Unduh">
+                                    <a href="/download/{{ f.name }}" class="btn btn-outline-secondary py-1 px-2" style="font-size: 11px;" title="Unduh">
                                         <i class="bi bi-download"></i>
                                     </a>
-                                    <a href="/train" class="btn btn-outline-primary py-0 px-2" style="font-size: 11px;" title="Latih">
+                                    <a href="/train" class="btn btn-outline-primary py-1 px-2" style="font-size: 11px;" title="Latih">
                                         <i class="bi bi-cpu"></i> Latih
                                     </a>
                                     <form action="/delete/{{ f.name }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus file {{ f.name }}?');">
-                                        <button type="submit" class="btn btn-outline-danger py-0 px-2" style="font-size: 11px;" title="Hapus">
+                                        <button type="submit" class="btn btn-outline-danger py-1 px-2" style="font-size: 11px;" title="Hapus">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>

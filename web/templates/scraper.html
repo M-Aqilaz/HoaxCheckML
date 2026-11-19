@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Scraper Berita — HoaxCheck{% endblock %}
+{% block title %}Scraper Berita Valid — HoaxCheck Studio{% endblock %}
 
 {% block content %}
 <!-- HEADER -->
@@ -23,23 +23,23 @@
             <div class="card-header-modern">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-cloud-arrow-down-fill text-success"></i>
-                    <span>Tarik Berita Real-Time</span>
+                    <span>Tarik Berita Real-Time (Antara, CNN, CNBC)</span>
                 </div>
             </div>
             <div class="card-body p-3">
                 <form action="/scrape" method="POST">
                     <div class="row g-2">
                         <div class="col-md-7">
-                            <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Sumber Berita:</label>
+                            <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Pilih Sumber Berita:</label>
                             <select name="source" class="form-select form-select-sm">
-                                <option value="all">Semua Portal (Antara, CNN, CNBC)</option>
-                                <option value="antara">Antara News (Kantor Berita Negara)</option>
-                                <option value="cnn">CNN Indonesia</option>
-                                <option value="cnbc">CNBC Indonesia</option>
+                                <option value="all">Semua Portal (Antara, CNN, CNBC) — Rekomendasi</option>
+                                <option value="antara">Antara News (Resmi Kantor Berita Negara)</option>
+                                <option value="cnn">CNN Indonesia (Nasional, Tekno, Ekonomi)</option>
+                                <option value="cnbc">CNBC Indonesia (News, Tech, Market)</option>
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Jumlah Berita:</label>
+                            <label class="form-label small fw-semibold text-muted mb-1" style="font-size: 11px;">Target Jumlah Berita:</label>
                             <select name="limit" class="form-select form-select-sm">
                                 <option value="100">100 Artikel (~1 detik)</option>
                                 <option value="200" selected>200 Artikel (~2 detik)</option>
@@ -48,8 +48,8 @@
                             </select>
                         </div>
                         <div class="col-12 pt-2">
-                            <button type="submit" class="btn-ds-primary w-100">
-                                <i class="bi bi-play-fill fs-6"></i> Mulai Scraping Sekarang
+                            <button type="submit" class="btn-ds-primary w-100 py-2">
+                                <i class="bi bi-play-circle me-1"></i> Mulai Scraping Sekarang
                             </button>
                         </div>
                     </div>
