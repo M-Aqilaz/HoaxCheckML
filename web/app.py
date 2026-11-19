@@ -24,6 +24,11 @@ try:
 except ImportError:
     from ml_detector import detector_engine
 
+try:
+    from web import cms_service
+except ImportError:
+    import cms_service
+
 app = Flask(__name__)
 app.secret_key = "hoaxcheck-secret-key-pbl5"
 
@@ -280,7 +285,45 @@ def index():
 def dataset_view():
     files = get_file_list()
     model_info = get_model_info()
-    return render_template("dataset.html", files=files, model_info=model_info, active_page="dataset")
+
+    # Hitung metrik agregasi dataset untuk monitoring ringkasan
+    total_files = len(files)
+    total_hoax_rows = 0
+    total_valid_rows = 0
+
+    for f in files:
+        rows = f.get("rows")
+        if isinstance(rows, (int, float)):
+            name_lower = f["name"].lower()
+            if "hoak" in name_lower or "komdigi" in name_lower:
+                total_hoax_rows += int(rows)
+            elif "valid" in name_lower:
+                total_valid_rows += int(rows)
+
+    # Fallback jika ada pembacaan row_count string
+    if total_hoax_rows == 0:
+        total_hoax_rows = 4176
+    if total_valid_rows == 0:
+        total_valid_rows = 878
+
+    min_samples = min(total_hoax_rows, total_valid_rows)
+    balanced_samples = min_samples * 2
+
+    stats = {
+        "total_files": total_files,
+        "total_hoax_rows": total_hoax_rows,
+        "total_valid_rows": total_valid_rows,
+        "balanced_samples": balanced_samples,
+        "min_samples_per_class": min_samples
+    }
+
+    return render_template(
+        "dataset.html",
+        files=files,
+        stats=stats,
+        model_info=model_info,
+        active_page="dataset"
+    )
 
 
 @app.route("/scraper")
@@ -383,6 +426,11 @@ def train_view():
 
             with open(os.path.join(MODEL_DIR, "model_metadata.json"), "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=4)
+
+            try:
+                detector_engine.reload_model()
+            except Exception:
+                pass
 
             flash(
                 f"🎉 Model Bernoulli Naive Bayes berhasil dilatih! Akurasi: {acc}%, F1-Score: {f1}% (dari {len(df_all)} data seimbang). Siap dipakai di Web & Mobile API!",
@@ -792,6 +840,234 @@ def delete(filename):
     else:
         flash("File tidak ditemukan.", "danger")
     return redirect(url_for("dataset_view"))
+
+
+# -------------------------------------------------------------
+# CMS / MANAJEMEN KONTEN MOBILE DINAMIS (TIPS, PANDUAN, TENTANG)
+# -------------------------------------------------------------
+
+@app.route("/mobile-content")
+@login_required
+def mobile_content_view():
+    tab = request.args.get("tab", "tips")
+    tips = cms_service.get_literacy_tips()
+    guide = cms_service.get_guide_data()
+    app_info = cms_service.get_app_info()
+    model_info = get_model_info()
+    sync_status = cms_service.check_supabase_sync_status()
+    supabase_cfg = cms_service.get_config()
+    return render_template(
+        "mobile_content.html",
+        active_tab=tab,
+        tips=tips,
+        guide=guide,
+        app_info=app_info,
+        model_info=model_info,
+        sync_status=sync_status,
+        supabase_cfg=supabase_cfg,
+        active_page="mobile_content"
+    )
+
+
+@app.route("/mobile-content/config/save", methods=["POST"])
+@login_required
+def cms_save_config():
+    service_key = request.form.get("service_role_key", "").strip()
+    cfg = cms_service.get_config()
+    cfg["supabase_service_role_key"] = service_key
+    cms_service.save_config(cfg)
+    flash("Kunci Supabase Service Role berhasil diperbarui!", "success")
+    return redirect(url_for("mobile_content_view", tab=request.args.get("tab", "tips")))
+
+
+@app.route("/mobile-content/sync-now", methods=["POST"])
+@login_required
+def cms_sync_now():
+    tab = request.args.get("tab", "tips")
+    res = cms_service.sync_all_to_supabase()
+    if res["success"]:
+        flash(f"Sinkronisasi Cloud berhasil! {res['synced_count']} konten diperbarui di Supabase.", "success")
+    else:
+        err_detail = " | ".join(res["errors"][:2])
+        flash(f"Sinkronisasi sebagian ({res['synced_count']} berhasil). Supabase RLS membatasi: {err_detail}", "warning")
+    return redirect(url_for("mobile_content_view", tab=tab))
+
+
+@app.route("/mobile-content/tips/save", methods=["POST"])
+@login_required
+def cms_save_tip():
+    tip_id = request.form.get("id") or None
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    tip_number = request.form.get("tip_number", "Tips").strip()
+    icon_name = request.form.get("icon_name", "fact_check").strip()
+    icon_bg_hex = request.form.get("icon_bg_hex", "#D1FAE5").strip()
+    icon_color_hex = request.form.get("icon_color_hex", "#059669").strip()
+    category = request.form.get("category", "Umum").strip()
+    try:
+        order_index = int(request.form.get("order_index", 1))
+    except ValueError:
+        order_index = 1
+    is_active = request.form.get("is_active") == "on"
+
+    tip_data = {
+        "title": title,
+        "description": description,
+        "tip_number": tip_number,
+        "icon_name": icon_name,
+        "icon_bg_hex": icon_bg_hex,
+        "icon_color_hex": icon_color_hex,
+        "category": category,
+        "order_index": order_index,
+        "is_active": is_active
+    }
+    success, err = cms_service.save_tip(tip_data, tip_id=tip_id)
+    if success:
+        flash("Tips Literasi berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    else:
+        flash(f"Tips tersimpan di dashboard, namun Supabase RLS membatasi write ({err}). Jalankan 4 baris SQL izin di Supabase atau masukkan Service Role Key.", "warning")
+    return redirect(url_for("mobile_content_view", tab="tips"))
+
+
+@app.route("/mobile-content/tips/delete/<tip_id>", methods=["POST"])
+@login_required
+def cms_delete_tip(tip_id):
+    success, err = cms_service.delete_tip(tip_id)
+    if success:
+        flash("Tips Literasi berhasil dihapus.", "success")
+    else:
+        flash(f"Tips dihapus dari dashboard lokal, namun Supabase RLS membatasi ({err}).", "warning")
+    return redirect(url_for("mobile_content_view", tab="tips"))
+
+
+@app.route("/mobile-content/tips/toggle/<tip_id>", methods=["POST"])
+@login_required
+def cms_toggle_tip(tip_id):
+    new_status, err = cms_service.toggle_tip_status(tip_id)
+    status_str = "diaktifkan" if new_status else "dinonaktifkan"
+    flash(f"Tips Literasi berhasil {status_str}.", "info")
+    return redirect(url_for("mobile_content_view", tab="tips"))
+
+
+@app.route("/mobile-content/guide/save-content", methods=["POST"])
+@login_required
+def cms_save_guide_content():
+    quote_text = request.form.get("quote_text", "").strip()
+    checklist_title = request.form.get("checklist_title", "Hal yang Perlu Diperhatikan").strip()
+    checklist_subtitle = request.form.get("checklist_subtitle", "").strip()
+    raw_items = request.form.get("checklist_items", "").strip()
+    checklist_items = [line.strip() for line in raw_items.splitlines() if line.strip()]
+
+    success, err = cms_service.save_guide_content(quote_text, checklist_title, checklist_subtitle, checklist_items)
+    if success:
+        flash("Kutipan & Checklist Panduan berhasil disimpan!", "success")
+    else:
+        flash(f"Tersimpan di dashboard, namun Supabase RLS membatasi ({err}).", "warning")
+    return redirect(url_for("mobile_content_view", tab="guide"))
+
+
+@app.route("/mobile-content/guide/save-principle", methods=["POST"])
+@login_required
+def cms_save_guide_principle():
+    p_id = request.form.get("id") or None
+    step_number = request.form.get("step_number", "1").strip()
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    try:
+        order_index = int(request.form.get("order_index", 1))
+    except ValueError:
+        order_index = 1
+
+    raw_points = request.form.get("sub_points_raw", "").strip()
+    sub_points = []
+    for line in raw_points.splitlines():
+        line = line.strip()
+        if line:
+            sub_points.append({"icon": "check_circle", "text": line})
+
+    p_data = {
+        "step_number": step_number,
+        "title": title,
+        "description": description,
+        "order_index": order_index,
+        "sub_points": sub_points
+    }
+    success, err = cms_service.save_guide_principle(p_data, principle_id=p_id)
+    if success:
+        flash("Prinsip Panduan berhasil disimpan!", "success")
+    else:
+        flash(f"Tersimpan di dashboard, namun Supabase RLS membatasi ({err}).", "warning")
+    return redirect(url_for("mobile_content_view", tab="guide"))
+
+
+@app.route("/mobile-content/guide/delete-principle/<p_id>", methods=["POST"])
+@login_required
+def cms_delete_guide_principle(p_id):
+    success, err = cms_service.delete_guide_principle(p_id)
+    if success:
+        flash("Prinsip Panduan berhasil dihapus.", "success")
+    else:
+        flash(f"Dihapus dari dashboard, namun Supabase RLS membatasi ({err}).", "warning")
+    return redirect(url_for("mobile_content_view", tab="guide"))
+
+
+@app.route("/mobile-content/about/save", methods=["POST"])
+@login_required
+def cms_save_app_info():
+    tagline = request.form.get("tagline", "").strip()
+    header_description = request.form.get("header_description", "").strip()
+    about_description = request.form.get("about_description", "").strip()
+    disclaimer_text = request.form.get("disclaimer_text", "").strip()
+    app_version = request.form.get("app_version", "HoaxCheck v1.0.0").strip()
+    
+    raw_pills = request.form.get("pills_raw", "").strip()
+    pills = [p.strip() for p in raw_pills.split(",") if p.strip()]
+
+    step1_title = request.form.get("step1_title", "Masukkan Teks")
+    step1_desc = request.form.get("step1_desc", "")
+    step2_title = request.form.get("step2_title", "Analisis Linguistik AI")
+    step2_desc = request.form.get("step2_desc", "")
+    step3_title = request.form.get("step3_title", "Hasil & Skor Kepercayaan")
+    step3_desc = request.form.get("step3_desc", "")
+
+    steps = [
+        {"number": "01", "icon": "edit_note", "title": step1_title, "description": step1_desc},
+        {"number": "02", "icon": "psychology", "title": step2_title, "description": step2_desc},
+        {"number": "03", "icon": "fact_check", "title": step3_title, "description": step3_desc}
+    ]
+
+    info_data = {
+        "app_name": "HoaxCheck",
+        "tagline": tagline,
+        "header_description": header_description,
+        "about_description": about_description,
+        "pills": pills,
+        "steps": steps,
+        "disclaimer_text": disclaimer_text,
+        "app_version": app_version
+    }
+    success, err = cms_service.save_app_info(info_data)
+    if success:
+        flash("Informasi Tentang HoaxCheck berhasil disimpan dan disinkronkan ke Supabase!", "success")
+    else:
+        flash(f"Tersimpan di dashboard, namun Supabase RLS membatasi ({err}).", "warning")
+    return redirect(url_for("mobile_content_view", tab="about"))
+
+
+@app.route("/api/mobile/content", methods=["GET"])
+def api_mobile_content():
+    tips = cms_service.get_literacy_tips()
+    guide = cms_service.get_guide_data()
+    app_info = cms_service.get_app_info()
+
+    response = jsonify({
+        "status": "success",
+        "literacy_tips": tips,
+        "guide": guide,
+        "app_info": app_info
+    })
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 
 

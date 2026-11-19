@@ -2,10 +2,18 @@ import os
 import re
 import math
 import time
+import json
+import pickle
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.neighbors import KNeighborsClassifier
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(BASE_DIR)
+MODEL_DIR = os.path.join(BASE_DIR, "models")
 KOMDIGI_PATH = os.path.join(PROJECT_DIR, "data", "komdigi_hoaks.csv")
 VALID_PATH = os.path.join(BASE_DIR, "uploads", "berita_valid_terbaru.csv")
 
@@ -23,19 +31,72 @@ def clean_text(text):
 
 class HoaxMLDetector:
     def __init__(self):
+        self.models = {}
+        self.tfidf = None
         self.log_weights = {}
         self.vocab_size = 0
         self.is_trained = False
         self.total_hoax_samples = 0
         self.total_valid_samples = 0
-        self.train_model()
+        self.metadata = {}
+        self.reload_model()
 
-    def train_model(self):
+    def reload_model(self):
+        """Muat model scikit-learn (.pkl) dan TF-IDF vectorizer dari folder web/models/"""
+        os.makedirs(MODEL_DIR, exist_ok=True)
+        bernoulli_path = os.path.join(MODEL_DIR, "model_bernoulli.pkl")
+        tfidf_path = os.path.join(MODEL_DIR, "tfidf_vectorizer.pkl")
+        meta_path = os.path.join(MODEL_DIR, "model_metadata.json")
+
+        loaded = False
+        if os.path.exists(bernoulli_path) and os.path.exists(tfidf_path):
+            try:
+                with open(bernoulli_path, "rb") as f:
+                    self.models["bernoulli"] = pickle.load(f)
+                with open(tfidf_path, "rb") as f:
+                    self.tfidf = pickle.load(f)
+
+                if os.path.exists(meta_path):
+                    with open(meta_path, "r", encoding="utf-8") as f:
+                        self.metadata = json.load(f)
+                        self.total_hoax_samples = self.metadata.get("hoax_samples", 749)
+                        self.total_valid_samples = self.metadata.get("valid_samples", 749)
+
+                # Ekstraksi bobot diskriminatif fitur dari feature_log_prob_ BernoulliNB
+                # log_weight = log P(fitur|HOAKS) - log P(fitur|VALID)
+                vocab = self.tfidf.get_feature_names_out()
+                model_b = self.models["bernoulli"]
+                if hasattr(model_b, "feature_log_prob_"):
+                    diff = model_b.feature_log_prob_[1] - model_b.feature_log_prob_[0]
+                    self.log_weights = {vocab[i]: float(diff[i]) for i in range(len(vocab))}
+                    self.vocab_size = len(vocab)
+
+                self.is_trained = True
+                loaded = True
+            except Exception as e:
+                print(f"[HoaxMLDetector] Gagal memuat model tersimpan: {e}")
+                loaded = False
+
+        if not loaded:
+            self.train_and_save_fallback()
+
+        # Muat juga model alternatif jika ada
+        for alt_key in ["multinomial", "svm", "knn"]:
+            alt_path = os.path.join(MODEL_DIR, f"model_{alt_key}.pkl")
+            if os.path.exists(alt_path):
+                try:
+                    with open(alt_path, "rb") as f:
+                        self.models[alt_key] = pickle.load(f)
+                except Exception:
+                    pass
+
+    def train_and_save_fallback(self):
+        """Melatih dan menyeimbangkan dataset 1:1 bila file .pkl belum tersedia."""
         try:
             hoax_titles = []
             if os.path.exists(KOMDIGI_PATH):
                 df_h = pd.read_csv(KOMDIGI_PATH, usecols=["title"])
-                hoax_titles = [clean_text(t) for t in df_h["title"].dropna() if len(clean_text(t)) > 5]
+                hoax_titles = [clean_text(t) for t in df_h["title"].dropna() if len(clean_text(t)) > 10]
 
             valid_texts = []
             if os.path.exists(VALID_PATH):
@@ -43,46 +104,74 @@ class HoaxMLDetector:
                 valid_texts = [
                     clean_text(str(t) + " " + str(e))
                     for t, e in zip(df_v["title"].fillna(""), df_v["excerpt"].fillna(""))
-                    if len(clean_text(str(t))) > 5
+                    if len(clean_text(str(t))) > 10
                 ]
-
-            self.total_hoax_samples = len(hoax_titles)
-            self.total_valid_samples = len(valid_texts)
 
             if not hoax_titles or not valid_texts:
                 return
 
-            hoax_word_counts = {}
-            for doc in hoax_titles:
-                for w in set(doc.split()):
-                    if len(w) > 2:
-                        hoax_word_counts[w] = hoax_word_counts.get(w, 0) + 1
+            min_len = min(len(hoax_titles), len(valid_texts))
+            df_h_sub = pd.DataFrame({"text": hoax_titles[:min_len], "label": 1})
+            df_v_sub = pd.DataFrame({"text": valid_texts[:min_len], "label": 0})
+            df_all = pd.concat([df_h_sub, df_v_sub], ignore_index=True).sample(frac=1.0, random_state=42)
 
-            valid_word_counts = {}
-            for doc in valid_texts:
-                for w in set(doc.split()):
-                    if len(w) > 2:
-                        valid_word_counts[w] = valid_word_counts.get(w, 0) + 1
+            tfidf = TfidfVectorizer(max_features=1500, ngram_range=(1, 2))
+            X = tfidf.fit_transform(df_all["text"])
+            y = df_all["label"].values
 
-            all_words = set(list(hoax_word_counts.keys()) + list(valid_word_counts.keys()))
-            n_h = len(hoax_titles)
-            n_v = len(valid_texts)
+            model_b = BernoulliNB(alpha=1.0, binarize=0.0)
+            model_b.fit(X, y)
 
-            weights = {}
-            for w in all_words:
-                c_h = hoax_word_counts.get(w, 0)
-                c_v = valid_word_counts.get(w, 0)
-                if c_h + c_v >= 3:
-                    # Laplace smoothing alpha=1.0
-                    p_h = (c_h + 1.0) / (n_h + 2.0)
-                    p_v = (c_v + 1.0) / (n_v + 2.0)
-                    weights[w] = math.log(p_h / p_v)
+            self.models["bernoulli"] = model_b
+            self.tfidf = tfidf
 
-            self.log_weights = weights
-            self.vocab_size = len(weights)
+            vocab = tfidf.get_feature_names_out()
+            diff = model_b.feature_log_prob_[1] - model_b.feature_log_prob_[0]
+            self.log_weights = {vocab[i]: float(diff[i]) for i in range(len(vocab))}
+            self.vocab_size = len(vocab)
+            self.total_hoax_samples = min_len
+            self.total_valid_samples = min_len
             self.is_trained = True
+
+            with open(os.path.join(MODEL_DIR, "model_bernoulli.pkl"), "wb") as f:
+                pickle.dump(model_b, f)
+            with open(os.path.join(MODEL_DIR, "tfidf_vectorizer.pkl"), "wb") as f:
+                pickle.dump(tfidf, f)
         except Exception as e:
-            self.is_trained = False
+            print(f"[HoaxMLDetector] Error fallback training: {e}")
+
+    def extract_linguistic_patterns(self, raw_text):
+        patterns = []
+        has_chain = False
+        has_urgency = False
+        has_phishing = False
+
+        if re.search(r"\b(viralkan|sebarkan|bagikan|grup\s+wa|grup\s+whatsapp|teruskan|kirimkan\s+ke)\b", raw_text, re.I):
+            patterns.append("Ajakan Teruskan Pesan (Forward Chain)")
+            has_chain = True
+
+        if re.search(r"\b(sebelum dihapus|segera|cair serentak|hari ini juga|kuota habis|kuota terbatas|jangan tunda)\b", raw_text, re.I):
+            patterns.append("Pola Urgensi Palsu (False Urgency)")
+            has_urgency = True
+
+        if re.search(r"\b(blogspot|wordpress|tinyurl|bit\.ly|s\.id|shorturl|t\.me|wa\.me|cair-bansos|bansos-cair|klaim-hadiah)\b", raw_text, re.I):
+            patterns.append("Domain Tautan Tidak Resmi / Phishing")
+            has_phishing = True
+
+        if re.search(r"(\!{2,}|\?{2,})", raw_text):
+            patterns.append("Tanda Baca Emosional Berlebih")
+
+        # Cek apakah pencatutan instansi resmi di tengah narasi phishing/urgensi palsu
+        mentions_gov = bool(re.search(r"\b(resmi|kementerian|kemenkes|kemensos|kemendikbud|pemerintah|bansos|presiden|kapolri|blt)\b", raw_text, re.I))
+        if mentions_gov:
+            if has_chain or has_urgency or has_phishing:
+                patterns.append("Pencatutan Nama Lembaga Resmi")
+            else:
+                patterns.append("Atribusi Sumber & Lembaga Formal")
+        elif re.search(r"\b(antara|kompas|tempo|detik|reuters|siaran pers)\b", raw_text, re.I):
+            patterns.append("Atribusi Sumber & Lembaga Formal")
+
+        return patterns, (has_chain or has_urgency or has_phishing)
 
     def predict(self, text, model_name="bernoulli"):
         t_start = time.time()
@@ -92,59 +181,67 @@ class HoaxMLDetector:
                 "status": "error"
             }
 
-        raw_text = text
-        cleaned = clean_text(text)
-        words = set(cleaned.split())
+        raw_text = text.strip()
+        cleaned = clean_text(raw_text)
+        patterns, has_suspicious_pattern = self.extract_linguistic_patterns(raw_text)
 
-        score = 0.0
+        # Pilih model klasifikasi
+        model = self.models.get(model_name) or self.models.get("bernoulli")
+        
+        prob_hoax = 0.5
         evidence_hoax = []
         evidence_valid = []
 
-        for w in words:
-            if w in self.log_weights:
-                w_score = self.log_weights[w]
+        if model is not None and self.tfidf is not None and len(cleaned) > 0:
+            vec = self.tfidf.transform([cleaned])
+            
+            # Perhitungan probabilitas dari scikit-learn
+            if hasattr(model, "predict_proba"):
+                proba = model.predict_proba(vec)[0]
+                prob_valid = float(proba[0])
+                prob_hoax = float(proba[1])
+            else:
+                pred = model.predict(vec)[0]
+                prob_hoax = 0.95 if pred == 1 else 0.05
+                prob_valid = 1.0 - prob_hoax
+
+            # Cari token teks yang cocok dengan vocab TF-IDF dan ambil bobot log_weights
+            feature_names = self.tfidf.get_feature_names_out()
+            nz_indices = vec.nonzero()[1]
+            for idx in nz_indices:
+                w = feature_names[idx]
+                w_score = self.log_weights.get(w, 0.0)
+                if w_score > 0.3:
+                    evidence_hoax.append((w, round(w_score, 2)))
+                elif w_score < -0.3:
+                    evidence_valid.append((w, round(abs(w_score), 2)))
+
+        else:
+            # Fallback jika model belum siap
+            score = 0.0
+            words = set(cleaned.split())
+            for w in words:
+                w_score = self.log_weights.get(w, 0.0)
                 score += w_score
                 if w_score > 0.4:
                     evidence_hoax.append((w, round(w_score, 2)))
                 elif w_score < -0.4:
                     evidence_valid.append((w, round(abs(w_score), 2)))
+            prob_hoax = 1.0 / (1.0 + math.exp(-max(min(score, 10.0), -10.0)))
+            prob_valid = 1.0 - prob_hoax
 
-        # NLP Linguistic pattern features
-        patterns = []
-        if re.search(r"\b(viralkan|sebarkan|bagikan|grup\s+wa|grup\s+whatsapp|teruskan)\b", raw_text, re.I):
-            score += 3.2
-            patterns.append("Ajakan Teruskan Pesan (Forward Chain)")
+        # Safeguard: jika teks terdeteksi memiliki tautan phishing atau ajakan berantai + urgensi palsu,
+        # pastikan probabilitas hoaks tinggi
+        if any("Phishing" in p for p in patterns) or (any("Forward Chain" in p for p in patterns) and any("False Urgency" in p for p in patterns)):
+            if prob_hoax < 0.85:
+                prob_hoax = max(prob_hoax, 0.96)
+                prob_valid = 1.0 - prob_hoax
 
-        if re.search(r"\b(sebelum dihapus|segera|cair serentak|hari ini juga|kuota habis|kuota terbatas)\b", raw_text, re.I):
-            score += 2.5
-            patterns.append("Pola Urgensi Palsu (False Urgency)")
-
-        if re.search(r"\b(blogspot|wordpress|tinyurl|bit\.ly|s\.id|shorturl|t\.me|wa\.me)\b", raw_text, re.I):
-            score += 3.0
-            patterns.append("Domain Tautan Tidak Resmi / Phishing")
-
-        if re.search(r"\b(resmi|kementerian|menteri|pemerintah|antara|presiden|direktur|kapolri|pj)\b", raw_text, re.I):
-            score -= 1.5
-            patterns.append("Atribusi Sumber & Lembaga Formal")
-
-        if re.search(r"(\!{2,}|\?{2,})", raw_text):
-            score += 1.0
-            patterns.append("Tanda Baca Emosional Berlebih")
-
-        # Sigmoid calibration
-        prob_hoax = 1.0 / (1.0 + math.exp(-max(min(score, 14.0), -14.0)))
         is_hoax = prob_hoax >= 0.5
-        confidence = prob_hoax if is_hoax else (1.0 - prob_hoax)
-        conf_percent = round(confidence * 100, 1)
+        confidence = (prob_hoax if is_hoax else (1.0 - prob_hoax)) * 100.0
+        conf_percent = round(max(min(confidence, 99.8), 70.0), 1)
 
-        # Cap confidence minimum and maximum realistic boundaries
-        conf_percent = max(min(conf_percent, 99.8), 70.0)
-
-        execution_ms = round((time.time() - t_start) * 1000, 2)
-        if execution_ms < 1.0:
-            execution_ms = round(execution_ms + 1.2, 1)
-
-        # Sorted top evidence tokens
+        # Urutkan bukti kata kunci
         top_h_words = [item[0] for item in sorted(evidence_hoax, key=lambda x: x[1], reverse=True)[:5]]
         top_v_words = [item[0] for item in sorted(evidence_valid, key=lambda x: x[1], reverse=True)[:5]]
 
@@ -170,6 +267,10 @@ class HoaxMLDetector:
         elif model_name == "knn":
             model_label = "K-Nearest Neighbors (Cosine)"
 
+        execution_ms = round((time.time() - t_start) * 1000, 2)
+        if execution_ms < 1.0:
+            execution_ms = round(execution_ms + 1.2, 1)
+
         return {
             "status": "success",
             "label": "HOAKS" if is_hoax else "VALID",
@@ -182,7 +283,8 @@ class HoaxMLDetector:
             "recommendation_title": recommendation_title,
             "recommendation_text": recommendation_text,
             "total_vocab": self.vocab_size,
-            "score": round(score, 2)
+            "prob_hoax": round(prob_hoax * 100, 1),
+            "prob_valid": round(prob_valid * 100, 1)
         }
 
     def simulate_pipeline(self, text, model_name="bernoulli"):
@@ -213,16 +315,15 @@ class HoaxMLDetector:
         text_step2 = re.sub(r'https?://\S+|www\.\S+', '', text_step1)
         text_step2 = re.sub(r'<.*?>', '', text_step2)
 
-        # Step 3: Case Folding & Pemfilteran Tanda Baca / Non-Alfabet
+        # Step 3: Case Folding & Pembersihan Non-Alfabet
         text_step3 = re.sub(r'[^a-zA-Z\s]', ' ', text_step2)
-        text_step4 = re.sub(r'\s+', ' ', text_step3.lower()).strip()
-        final_clean = text_step4
+        final_clean = re.sub(r'\s+', ' ', text_step3.lower()).strip()
 
         # Step 4: Tokenisasi
         tokens = [w for w in final_clean.split() if len(w) > 1]
         unique_tokens = sorted(list(set(tokens)))
 
-        # Step 5: Pencocokan Kosakata & Pembobotan Fitur (Log-Likelihood)
+        # Step 5: Pencocokan Kosakata & Pembobotan Fitur
         vocab_matches = []
         word_score = 0.0
         for w in unique_tokens:
@@ -230,7 +331,7 @@ class HoaxMLDetector:
             w_weight = self.log_weights.get(w, 0.0)
             if in_vocab:
                 word_score += w_weight
-            
+
             impact = "neutral"
             if w_weight > 0.4:
                 impact = "hoax"
@@ -244,63 +345,50 @@ class HoaxMLDetector:
                 "impact": impact
             })
 
-        # Urutkan berdasarkan magnitudo pengaruh bobot terbesar
         vocab_matches.sort(key=lambda x: abs(x["weight"]), reverse=True)
 
         # Step 6: Ekstraksi Pola Linguistik NLP
-        patterns = []
+        patterns, has_suspicious = self.extract_linguistic_patterns(raw_text)
+        pattern_details = []
         pattern_score = 0.0
 
-        if re.search(r"\b(viralkan|sebarkan|bagikan|grup\s+wa|grup\s+whatsapp|teruskan)\b", raw_text, re.I):
-            pattern_score += 3.2
-            patterns.append({
-                "name": "Ajakan Teruskan Pesan (Forward Chain)",
-                "weight": +3.2,
-                "impact": "hoax",
-                "desc": "Mendeteksi ajakan menyebarkan pesan secara berantai ke grup percakapan."
-            })
-
-        if re.search(r"\b(sebelum dihapus|segera|cair serentak|hari ini juga|kuota habis|kuota terbatas)\b", raw_text, re.I):
-            pattern_score += 2.5
-            patterns.append({
-                "name": "Pola Urgensi Palsu (False Urgency)",
-                "weight": +2.5,
-                "impact": "hoax",
-                "desc": "Menciptakan ilusi urgensi waktu agar penerima bertindak tanpa verifikasi."
-            })
-
-        if re.search(r"\b(blogspot|wordpress|tinyurl|bit\.ly|s\.id|shorturl|t\.me|wa\.me)\b", raw_text, re.I):
-            pattern_score += 3.0
-            patterns.append({
-                "name": "Domain Tautan Tidak Resmi / Phishing",
-                "weight": +3.0,
-                "impact": "hoax",
-                "desc": "Penggunaan tautan pendek atau subdomain tidak resmi yang rentan phising."
-            })
-
-        if re.search(r"\b(resmi|kementerian|menteri|pemerintah|antara|presiden|direktur|kapolri|pj)\b", raw_text, re.I):
-            pattern_score -= 1.5
-            patterns.append({
-                "name": "Atribusi Sumber & Lembaga Formal",
-                "weight": -1.5,
-                "impact": "valid",
-                "desc": "Penyebutan institusi kredibel menurunkan probabilitas hoaks."
-            })
-
-        if re.search(r"(\!{2,}|\?{2,})", raw_text):
-            pattern_score += 1.0
-            patterns.append({
-                "name": "Tanda Baca Emosional Berlebih",
-                "weight": +1.0,
-                "impact": "hoax",
-                "desc": "Penggunaan tanda seru/tanya berulang untuk memicu sensasi kepanikan."
-            })
+        for p in patterns:
+            if p == "Ajakan Teruskan Pesan (Forward Chain)":
+                pattern_score += 3.2
+                pattern_details.append({"name": p, "weight": +3.2, "impact": "hoax", "desc": "Mendeteksi ajakan menyebarkan pesan berantai ke grup chat."})
+            elif p == "Pola Urgensi Palsu (False Urgency)":
+                pattern_score += 2.5
+                pattern_details.append({"name": p, "weight": +2.5, "impact": "hoax", "desc": "Menciptakan ilusi urgensi waktu agar bertindak tanpa verifikasi."})
+            elif p == "Domain Tautan Tidak Resmi / Phishing":
+                pattern_score += 3.5
+                pattern_details.append({"name": p, "weight": +3.5, "impact": "hoax", "desc": "Tautan domain blog gratis/shortlink rentan phising pencurian data."})
+            elif p == "Pencatutan Nama Lembaga Resmi":
+                pattern_score += 2.0
+                pattern_details.append({"name": p, "weight": +2.0, "impact": "hoax", "desc": "Mencatut kementerian/instansi untuk memancing kepercayaan penerima."})
+            elif p == "Atribusi Sumber & Lembaga Formal":
+                pattern_score -= 2.5
+                pattern_details.append({"name": p, "weight": -2.5, "impact": "valid", "desc": "Penyebutan institusi kredibel dalam konteks jurnalistik terverifikasi."})
+            elif p == "Tanda Baca Emosional Berlebih":
+                pattern_score += 1.0
+                pattern_details.append({"name": p, "weight": +1.0, "impact": "hoax", "desc": "Tanda seru/tanya berulang untuk memicu sensasi emosi."})
 
         # Step 7: Agregasi Skor & Kalibrasi Probabilitas
-        total_score = word_score + pattern_score
-        clamped_score = max(min(total_score, 14.0), -14.0)
-        prob_hoax = 1.0 / (1.0 + math.exp(-clamped_score))
-        prob_valid = 1.0 - prob_hoax
+        model = self.models.get(model_name) or self.models.get("bernoulli")
+        if model is not None and self.tfidf is not None and len(final_clean) > 0:
+            vec = self.tfidf.transform([final_clean])
+            proba = model.predict_proba(vec)[0]
+            prob_valid = float(proba[0])
+            prob_hoax = float(proba[1])
+        else:
+            total_score = word_score + pattern_score
+            prob_hoax = 1.0 / (1.0 + math.exp(-max(min(total_score, 12.0), -12.0)))
+            prob_valid = 1.0 - prob_hoax
+
+        # Safeguard phishing
+        if any("Phishing" in p for p in patterns) or (any("Forward Chain" in p for p in patterns) and any("False Urgency" in p for p in patterns)):
+            if prob_hoax < 0.85:
+                prob_hoax = max(prob_hoax, 0.96)
+                prob_valid = 1.0 - prob_hoax
 
         is_hoax = prob_hoax >= 0.5
         confidence = (prob_hoax if is_hoax else prob_valid) * 100.0
@@ -344,10 +432,10 @@ class HoaxMLDetector:
             "tokens": tokens,
             "unique_tokens_count": len(unique_tokens),
             "vocab_matches": vocab_matches,
-            "patterns": patterns,
+            "patterns": pattern_details,
             "word_score": round(word_score, 2),
             "pattern_score": round(pattern_score, 2),
-            "total_score": round(total_score, 2),
+            "total_score": round(word_score + pattern_score, 2),
             "prob_hoax": round(prob_hoax * 100, 1),
             "prob_valid": round(prob_valid * 100, 1),
             "decision": "HOAKS" if is_hoax else "VALID",
@@ -358,4 +446,3 @@ class HoaxMLDetector:
 
 # Singleton instance
 detector_engine = HoaxMLDetector()
-
