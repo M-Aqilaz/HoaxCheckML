@@ -32,20 +32,28 @@ Engine aktif saat ini berada di [web/ml_detector.py](web/ml_detector.py).
 
 ```text
 HoaxCheckML/
-├── data/
-│   └── komdigi_hoaks.csv          # Dataset judul berita hoaks
-├── web/
-│   ├── app.py                     # Aplikasi Flask dan endpoint REST
-│   ├── ml_detector.py             # Cleaning, bobot teks, prediksi, dan simulasi
-│   ├── requirements.txt           # Dependensi aplikasi web
-│   ├── model_bernoulli.json       # Metadata/konfigurasi model
-│   ├── templates/                 # Halaman dashboard
-│   └── uploads/                   # Dataset hasil unggah dan RSS
-├── klasifikasi/                   # Notebook eksperimen KNN, Naive Bayes, dan SVM
-├── Pengujian_Supervised/          # Notebook pengujian model supervised
-├── Study_Case/                    # Notebook clustering dan study case
-├── BahanUTS/                      # Notebook eksperimen clustering UTS
-└── generate_dokumen_perencanaan.py
+├── data/                                 # Dataset utama
+│   └── komdigi_hoaks.csv                 # Dataset judul berita hoaks Komdigi
+├── notebooks/                            # Seluruh eksperimen Jupyter Notebook
+│   ├── 01_klasifikasi/                   # Eksperimen awal (KNN, Naive Bayes, SVM)
+│   ├── 02_pengujian_supervised/          # Pengujian komprehensif model supervised (KNN, LR, NB, RF, SVM)
+│   ├── 03_clustering_study_case/         # Eksperimen clustering kasus nyata (K-Means, DBSCAN, HDBSCAN)
+│   ├── 04_clustering_uts/                # Eksperimen clustering UTS (Hierarchical, HDBSCAN)
+│   └── 05_transformer/                   # IndoBERT transfer learning & fine-tuning
+├── scripts/                              # Skrip utilitas dan otomasi dokumen
+│   └── generate_dokumen_perencanaan.py   # Generator workbook perencanaan PBL
+├── web/                                  # Aplikasi web Flask & RESTful API
+│   ├── app.py                            # Entrypoint Flask dan route modular
+│   ├── ml_detector.py                    # Inference engine ML & analisis linguistik
+│   ├── cms_service.py                    # Layanan CMS dan sinkronisasi konten
+│   ├── supabase_service.py               # Integrasi database cloud Supabase
+│   ├── requirements.txt                  # Dependensi aplikasi web
+│   ├── models/                           # Bobot model terlatih (.pkl & .json)
+│   ├── static/                           # Aset statis frontend (CSS, JS, logo, favicon)
+│   ├── templates/                        # Template antarmuka web (Jinja2)
+│   └── uploads/                          # Dataset validasi scraping RSS & riwayat unggah
+├── .gitignore
+└── README.md
 ```
 
 ## Persyaratan
@@ -195,7 +203,7 @@ Hasil benchmark pada halaman `/benchmark` merupakan metadata evaluasi riset yang
 Untuk menghasilkan workbook perencanaan dan fitur:
 
 ```powershell
-python generate_dokumen_perencanaan.py
+python scripts\generate_dokumen_perencanaan.py
 ```
 
 Output `Dokumen Perencanaan - HoaxCheck.xlsx` disebabkan oleh `.gitignore` tidak akan dilacak oleh Git.
