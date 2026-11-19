@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoaxCheck — AI Fact-Checking & Live ML Inference Studio</title>
+    <!-- Favicon / Tab Logo -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
     <!-- Fonts: Design System Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -628,6 +632,10 @@
         <a href="/?tab=scraper" class="nav-item-custom">
             <i class="bi bi-newspaper fs-5"></i>
             <span>Scraper Berita Valid</span>
+        </a>
+        <a href="/admin" class="nav-item-custom">
+            <i class="bi bi-database-gear fs-5"></i>
+            <span>Admin Data Supabase</span>
         </a>
     </div>
 
