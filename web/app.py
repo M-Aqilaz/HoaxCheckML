@@ -862,23 +862,7 @@ def delete(filename):
 @login_required
 def mobile_content_view():
     tab = request.args.get("tab", "tips")
-    tips = cms_service.get_literacy_tips()
-    guide = cms_service.get_guide_data()
-    app_info = cms_service.get_app_info()
-    model_info = get_model_info()
-    sync_status = cms_service.check_supabase_sync_status()
-    supabase_cfg = cms_service.get_config()
-    return render_template(
-        "mobile_content.html",
-        active_tab=tab,
-        tips=tips,
-        guide=guide,
-        app_info=app_info,
-        model_info=model_info,
-        sync_status=sync_status,
-        supabase_cfg=supabase_cfg,
-        active_page="mobile_content"
-    )
+    return redirect(url_for("admin", tab=tab))
 
 
 @app.route("/mobile-content/config/save", methods=["POST"])
