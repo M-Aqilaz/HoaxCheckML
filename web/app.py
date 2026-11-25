@@ -1165,7 +1165,8 @@ def admin():
         reports=reports,
         notifications=notifications,
         conn_status=conn_status,
-        config=config
+        config=config,
+        active_page="admin"
     )
 
 

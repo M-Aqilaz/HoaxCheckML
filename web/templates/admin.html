@@ -531,19 +531,27 @@
         </a>
         <a href="/pipeline" class="nav-item-custom">
             <i class="bi bi-diagram-3 fs-5"></i>
-            <span>Visualisasi Pipeline ML</span>
+            <span>Pipeline Arsitektur ML</span>
         </a>
         <a href="/benchmark" class="nav-item-custom">
             <i class="bi bi-graph-up-arrow fs-5"></i>
             <span>Benchmark Riset ML</span>
         </a>
-        <a href="/?tab=dataset" class="nav-item-custom">
+        <a href="/mobile-content" class="nav-item-custom">
+            <i class="bi bi-phone fs-5"></i>
+            <span>Konten Mobile (CMS)</span>
+        </a>
+        <a href="/dataset" class="nav-item-custom">
             <i class="bi bi-folder2-open fs-5"></i>
             <span>Kelola Dataset</span>
         </a>
-        <a href="/?tab=scraper" class="nav-item-custom">
-            <i class="bi bi-newspaper fs-5"></i>
-            <span>Scraper Berita Valid</span>
+        <a href="/scraper" class="nav-item-custom">
+            <i class="bi bi-cloud-arrow-down fs-5"></i>
+            <span>Scraper Berita</span>
+        </a>
+        <a href="/train" class="nav-item-custom">
+            <i class="bi bi-gear-wide-connected fs-5"></i>
+            <span>Train Model ML</span>
         </a>
         <a href="/admin" class="nav-item-custom active">
             <i class="bi bi-database-gear fs-5"></i>
@@ -595,13 +603,12 @@
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
                 <span class="badge bg-emerald text-white px-2.5 py-1 rounded-pill" style="background-color: var(--primary); font-size: 11px;">
-                    <i class="bi bi-database-fill-gear"></i> Management Dashboard
+                    <i class="bi bi-database-fill-gear"></i> Admin Database Supabase
                 </span>
-                <span class="text-muted small">Supabase PostgREST Client</span>
             </div>
             <h2 class="hero-title-gradient mb-1">Pusat Manajemen Database & Aplikasi</h2>
             <p class="text-muted mb-0" style="font-size: 0.95rem;">
-                Kelola konten aplikasi HoaxCheck yang aktif di Supabase: Tips Beranda, Panduan Literasi, Info Aplikasi, Laporan Masalah, & Broadcast Notifikasi.
+                Kelola data konten edukasi, laporan masalah, dan siaran notifikasi aplikasi HoaxCheck secara terpusat.
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -615,26 +622,19 @@
         </div>
     </div>
 
-    <!-- RLS Policy Notice if needed -->
+    <!-- Status Kunci Akses -->
     {% if not conn_status.using_service_role %}
-        <div class="card-modern p-3 mb-4 border-warning bg-warning bg-opacity-10">
-            <div class="d-flex align-items-start gap-3">
-                <div class="text-warning fs-3 lh-1"><i class="bi bi-info-circle-fill"></i></div>
-                <div class="flex-grow-1">
-                    <div class="fw-bold text-dark">Menggunakan Kunci Supabase Anon (Client Mode)</div>
-                    <div class="small text-muted mb-2">
-                        Tabel <strong>Tips Literasi</strong>, <strong>Panduan</strong>, dan <strong>Info Aplikasi</strong> sudah memiliki RLS <code>Admin full access</code>. Untuk mengelola <strong>Laporan Masalah</strong> dan <strong>Broadcast Notifikasi</strong> secara penuh tanpa batasan RLS:
-                    </div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <a href="/admin?tab=settings" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill">
-                            <i class="bi bi-key-fill"></i> Masukkan Service Role Key
-                        </a>
-                        <button class="btn btn-outline-dark btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSqlMigration">
-                            <i class="bi bi-code-slash"></i> Lihat SQL Migration Supabase
-                        </button>
-                    </div>
+        <div class="alert alert-light border border-warning-subtle shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-check text-warning fs-5"></i>
+                <div>
+                    <span class="fw-semibold text-dark">Mode Publik Terhubung.</span>
+                    <span class="text-muted small">Untuk akses penuh tanpa batasan hak akses, masukkan Service Role Key di menu Konfigurasi.</span>
                 </div>
             </div>
+            <a href="/admin?tab=settings" class="btn btn-warning btn-sm fw-semibold rounded-pill px-3">
+                <i class="bi bi-key-fill me-1"></i> Konfigurasi Kunci Admin
+            </a>
         </div>
     {% endif %}
 
@@ -685,7 +685,7 @@
                         </div>
                     </div>
                     <div class="h3 fw-bold mb-0">{{ tips|length }}</div>
-                    <div class="small text-muted mt-1">Tersimpan di tabel <code>literacy_tips</code></div>
+                    <div class="small text-muted mt-1">Total tips literasi terdaftar</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -699,7 +699,7 @@
                     <div class="h3 fw-bold mb-0 text-success">
                         {{ tips | selectattr('is_active') | list | length }}
                     </div>
-                    <div class="small text-muted mt-1">Ditampilkan di Carousel Beranda Flutter</div>
+                    <div class="small text-muted mt-1">Tampil aktif di aplikasi mobile</div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -713,7 +713,7 @@
                     <div class="h3 fw-bold mb-0 text-secondary">
                         {{ tips | rejectattr('is_active') | list | length }}
                     </div>
-                    <div class="small text-muted mt-1">Disembunyikan dari aplikasi mobile</div>
+                    <div class="small text-muted mt-1">Disembunyikan dari aplikasi</div>
                 </div>
             </div>
         </div>
@@ -726,7 +726,7 @@
                         <i class="bi bi-card-checklist text-primary"></i> Daftar Tips Literasi Beranda
                     </h5>
                     <div class="small text-muted">
-                        Aturan Supabase: <code>Admin full access for literacy_tips</code>. Digunakan Flutter via <code>getTips()</code>.
+                        Kelola tips edukasi literasi yang ditampilkan pada beranda aplikasi.
                     </div>
                 </div>
                 <button type="button" class="btn btn-brand-primary" data-bs-toggle="modal" data-bs-target="#modalAddTip">
@@ -808,7 +808,7 @@
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="bi bi-lightbulb fs-1 d-block mb-2 text-secondary"></i>
-                                    Belum ada data tips literasi di tabel <code>literacy_tips</code>.
+                                    Belum ada data tips literasi yang terdaftar.
                                 </td>
                             </tr>
                         {% endif %}
@@ -829,10 +829,10 @@
                     <div class="card-header-modern">
                         <div>
                             <h5 class="card-header-title mb-1">
-                                <i class="bi bi-list-ol text-primary"></i> Langkah Prinsip Verifikasi (guide_principles)
+                                <i class="bi bi-list-ol text-primary"></i> Langkah Prinsip Verifikasi
                             </h5>
                             <div class="small text-muted">
-                                Menampilkan langkah panduan & poin verifikasi (<code>sub_points</code> JSONB) di aplikasi Flutter.
+                                Panduan langkah verifikasi berita untuk pengguna aplikasi.
                             </div>
                         </div>
                         <button type="button" class="btn btn-brand-primary" data-bs-toggle="modal" data-bs-target="#modalAddPrinciple">
@@ -901,7 +901,7 @@
                             {% else %}
                                 <div class="col-12 text-center py-5 text-muted">
                                     <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
-                                    Belum ada data di tabel <code>guide_principles</code>.
+                                    Belum ada data langkah prinsip panduan.
                                 </div>
                             {% endif %}
                         </div>
@@ -909,13 +909,13 @@
                 </div>
             </div>
 
-            <!-- Konten Kutipan & Checklist Verifikasi (guide_contents) -->
+            <!-- Konten Kutipan & Checklist Verifikasi -->
             <div class="col-12">
                 <div class="card-modern">
                     <div class="card-header-modern">
                         <div>
                             <h5 class="card-header-title mb-1">
-                                <i class="bi bi-quote text-primary"></i> Kutipan & Checklist Verifikasi (guide_contents)
+                                <i class="bi bi-quote text-primary"></i> Kutipan & Checklist Verifikasi
                             </h5>
                             <div class="small text-muted">
                                 Mengatur kutipan jurnalistik & butir-butir checklist verifikasi klaim berita sebelum dibagikan.
@@ -949,7 +949,7 @@
 
                                 <div class="col-lg-6">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <label class="form-label fw-bold small text-dark mb-0">Daftar Pertanyaan Checklist (JSONB array)</label>
+                                        <label class="form-label fw-bold small text-dark mb-0">Daftar Pertanyaan Checklist</label>
                                         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addChecklistItem()">
                                             <i class="bi bi-plus"></i> Tambah Butir
                                         </button>
@@ -995,10 +995,10 @@
             <div class="card-header-modern">
                 <div>
                     <h5 class="card-header-title mb-1">
-                        <i class="bi bi-info-circle text-primary"></i> Kelola Halaman "Tentang HoaxCheck" (app_info)
+                        <i class="bi bi-info-circle text-primary"></i> Kelola Halaman "Tentang HoaxCheck"
                     </h5>
                     <div class="small text-muted">
-                        Aturan Supabase: <code>Admin full access for app_info</code>. Mengatur visi aplikasi, pills, alur steps, dan penafian hukum.
+                        Kelola profil aplikasi, visi misi, fitur unggulan, dan penafian hukum.
                     </div>
                 </div>
                 <div class="badge bg-light text-dark border">
@@ -1028,11 +1028,11 @@
                                            value="{{ app_info.tagline if app_info else 'Bantu Kenali Informasi yang Meragukan' }}">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label fw-bold small text-dark">Header Description (Ringkasan Header)</label>
+                                    <label class="form-label fw-bold small text-dark">Ringkasan Header</label>
                                     <textarea name="header_description" rows="3" class="form-control rounded-3" required>{{ app_info.header_description if app_info else '' }}</textarea>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label fw-bold small text-dark">About Description (Deskripsi AI & Visi)</label>
+                                    <label class="form-label fw-bold small text-dark">Deskripsi Aplikasi & Visi</label>
                                     <textarea name="about_description" rows="4" class="form-control rounded-3" required>{{ app_info.about_description if app_info else '' }}</textarea>
                                 </div>
                             </div>
@@ -1040,7 +1040,7 @@
                             <!-- Highlights Pills Repeater -->
                             <div class="mb-4">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label fw-bold small text-dark mb-0">Highlight Pills (Fitur Unggulan)</label>
+                                    <label class="form-label fw-bold small text-dark mb-0">Fitur Unggulan (Pills)</label>
                                     <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addPillItem()">
                                         <i class="bi bi-plus"></i> Tambah Tagar Pill
                                     </button>
@@ -1065,7 +1065,7 @@
                             <!-- Steps Alur Deteksi Repeater -->
                             <div class="mb-4">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label fw-bold small text-dark mb-0">Alur Langkah Deteksi / How It Works (JSONB steps)</label>
+                                    <label class="form-label fw-bold small text-dark mb-0">Alur Langkah Deteksi (How It Works)</label>
                                     <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addStepItem()">
                                         <i class="bi bi-plus"></i> Tambah Langkah
                                     </button>
@@ -1200,10 +1200,10 @@
             <div class="card-header-modern">
                 <div>
                     <h5 class="card-header-title mb-1">
-                        <i class="bi bi-bug text-primary"></i> Pengelolaan Laporan Masalah / Bug (problem_reports)
+                        <i class="bi bi-bug text-primary"></i> Pengelolaan Laporan Masalah
                     </h5>
                     <div class="small text-muted">
-                        Melihat daftar keluhan masuk, memperbarui status penanganan, dan menghapus tiket laporan.
+                        Daftar laporan kendala pengguna, status penanganan, dan tindak lanjut.
                     </div>
                 </div>
 
@@ -1296,7 +1296,7 @@
                             <tr>
                                 <td colspan="6" class="text-center py-5 text-muted">
                                     <i class="bi bi-shield-check fs-1 d-block mb-2 text-success"></i>
-                                    Tidak ada laporan masalah yang ditemukan di tabel <code>problem_reports</code>.
+                                    Tidak ada laporan masalah yang ditemukan.
                                 </td>
                             </tr>
                         {% endif %}
@@ -1307,7 +1307,7 @@
     {% endif %}
 
     <!-- ======================================================================= -->
-    <!-- TAB 5: BROADCAST NOTIFIKASI SISTEM (notifications)                      -->
+    <!-- TAB 5: BROADCAST NOTIFIKASI SISTEM                                      -->
     <!-- ======================================================================= -->
     {% if active_tab == 'notifications' %}
         <div class="row g-4">
@@ -1321,7 +1321,7 @@
                     </div>
                     <div class="p-4">
                         <div class="alert alert-info bg-info bg-opacity-10 border-0 rounded-3 small mb-3">
-                            <i class="bi bi-broadcast"></i> Notifikasi ini akan disiarkan ke <strong>seluruh pengguna aplikasi</strong> dengan menyetel <code>user_id = NULL</code> di tabel Supabase <code>notifications</code>.
+                            <i class="bi bi-broadcast"></i> Pesan siaran ini akan dikirimkan langsung ke <strong>seluruh pengguna aplikasi mobile</strong>.
                         </div>
 
                         <form action="/admin/notifications/create" method="POST">
@@ -1374,7 +1374,7 @@
                     <div class="card-header-modern">
                         <div>
                             <h5 class="card-header-title mb-1">
-                                <i class="bi bi-bell-fill text-primary"></i> Riwayat Notifikasi (notifications)
+                                <i class="bi bi-bell-fill text-primary"></i> Riwayat Notifikasi
                             </h5>
                             <div class="small text-muted">Daftar notifikasi siaran global dan aktivitas pengguna</div>
                         </div>
@@ -1432,7 +1432,7 @@
                         {% else %}
                             <div class="text-center py-5 text-muted">
                                 <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
-                                Belum ada notifikasi di tabel <code>notifications</code>.
+                                Belum ada riwayat notifikasi.
                             </div>
                         {% endif %}
                     </div>
@@ -1471,12 +1471,12 @@
                             <div class="mb-4">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <label class="form-label fw-bold small text-dark mb-0">Service Role Secret Key (Opsional - Direkomendasikan)</label>
-                                    <span class="badge bg-warning text-dark" style="font-size: 10px;">Bypass RLS</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 11px;">Akses Penuh</span>
                                 </div>
                                 <textarea name="service_role_key" rows="2" class="form-control rounded-3 font-monospace small"
                                           placeholder="eyJhbGciOi... (Opsional, untuk hak akses admin penuh)">{{ config.service_role_key if config.service_role_key else '' }}</textarea>
                                 <div class="form-text">
-                                    Dengan Service Role Key, Flask backend dapat mengelola seluruh tabel Supabase tanpa terhalang batasan Row Level Security.
+                                    Gunakan Service Role Key agar server dapat mengelola seluruh data Supabase dengan hak akses penuh.
                                 </div>
                             </div>
 
@@ -1577,7 +1577,7 @@
                                    value="Tips #1" placeholder="Tips #1">
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-bold small text-dark">Urutan Tampil (order_index)</label>
+                            <label class="form-label fw-bold small text-dark">Urutan Tampil</label>
                             <input type="number" name="order_index" id="tipInputOrder" class="form-control rounded-3" required value="1">
                         </div>
                     </div>
@@ -1623,7 +1623,7 @@
 
                     <div class="form-check form-switch mt-3">
                         <input class="form-check-input" type="checkbox" name="is_active" id="tipInputActive" checked>
-                        <label class="form-check-label small" for="tipInputActive">Aktifkan tips di Carousel Beranda mobile app</label>
+                        <label class="form-check-label small" for="tipInputActive">Tampilkan tips di beranda aplikasi mobile</label>
                     </div>
                 </div>
                 <div class="modal-footer border-top p-3.5">
@@ -1649,11 +1649,11 @@
                 <div class="modal-body p-4">
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold small text-dark">Nomor Langkah (step_number)</label>
+                            <label class="form-label fw-bold small text-dark">Nomor Langkah</label>
                             <input type="text" name="step_number" id="principleInputStep" class="form-control rounded-3" required value="1" placeholder="1">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold small text-dark">Urutan Tampil (order_index)</label>
+                            <label class="form-label fw-bold small text-dark">Urutan Tampil</label>
                             <input type="number" name="order_index" id="principleInputOrder" class="form-control rounded-3" required value="1">
                         </div>
                         <div class="col-md-4">
@@ -1670,7 +1670,7 @@
 
                     <div class="mb-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <label class="form-label fw-bold small text-dark mb-0">Sub-Poin Verifikasi (sub_points JSONB)</label>
+                            <label class="form-label fw-bold small text-dark mb-0">Sub-Poin Checklist Verifikasi</label>
                             <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-3" onclick="addPrincipleSubPoint()">
                                 <i class="bi bi-plus"></i> Tambah Sub-Poin
                             </button>
