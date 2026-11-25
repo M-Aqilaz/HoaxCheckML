@@ -19,35 +19,47 @@
     
     <style>
         :root {
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --sidebar-width: 260px;
-            --sidebar-bg: #ffffff;
-            --sidebar-hover: #f3f4f6;
-            --sidebar-border: #e5e7eb;
+            --sidebar-bg: #1b1c1d;
+            --sidebar-hover: #2c2d2e;
             
-            /* Design System Tokens (Emerald Ramp) */
+            /* Primary (Emerald / Forest Ramp) */
             --primary: #006c4e;
             --primary-base: #1ca379;
             --primary-dark: #00513a;
             --primary-light: #45bf93;
             --primary-subtle: #e6f8f0;
             --primary-border: #82f8c8;
+            --primary-glow: rgba(0, 108, 78, 0.25);
+
+            /* Secondary (Mint Ramp) */
             --secondary: #5ac596;
-            --tertiary: #70b2e6;
-            --neutral: #242526;
-            --neutral-dark: #242526;
+            --secondary-dark: #005237;
+            --secondary-subtle: #edfbf4;
+
+            /* Tertiary (Sky Blue Ramp) */
+            --tertiary: #236391;
+            --tertiary-base: #78b0e3;
+            --tertiary-subtle: #e8f2ff;
+            --tertiary-border: #cde5ff;
+
+            /* Neutral (Charcoal / Gray Ramp) */
             --neutral-darkest: #1b1c1d;
+            --neutral-dark: #242526;
+            --neutral-surface: #303031;
             --neutral-muted: #5e5e5f;
-            --neutral-light: #f3f4f6;
-            --neutral-border: #e4e7eb;
-            --body-bg: #f8f9fa;
-            
-            /* Semantic Colors */
+            --neutral-border: #e3e2e3;
+            --neutral-card: #f8f9fa;
+            --bg-page: #fbfbfb;
+
+            /* Semantic */
             --danger: #ba1a1a;
-            --danger-subtle: #fff1f2;
-            --danger-border: #fca5a5;
+            --danger-subtle: #ffdad6;
+            --warning: #ef9f27;
+            --warning-subtle: #faedd9;
             --success: #006c4e;
-            --success-subtle: #e6f8f0;
-            --success-border: #82f8c8;
+            --success-subtle: #cbf2dd;
         }
 
         * {
@@ -55,116 +67,139 @@
         }
 
         body {
-            background-color: var(--body-bg);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: var(--neutral);
-            letter-spacing: -0.011em;
+            background-color: var(--bg-page);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(28, 163, 121, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(120, 176, 227, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            font-family: var(--font-family);
+            color: var(--neutral-dark);
+            letter-spacing: -0.01em;
             overflow-x: hidden;
             margin: 0;
             padding: 0;
             min-height: 100vh;
         }
 
-        /* SIDEBAR STYLES (Light Modern Design System) */
+        /* SIDEBAR STYLES (Dark Charcoal Minimalist) */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            background: #ffffff;
-            border-right: 1px solid var(--sidebar-border);
-            color: #64748b;
-            padding: 22px 14px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            color: #ababac;
+            padding: 16px 10px;
             display: flex;
             flex-direction: column;
             z-index: 1040;
-            box-shadow: 2px 0 16px rgba(0, 0, 0, 0.04);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-brand {
-            padding: 4px 8px 18px 8px;
-            border-bottom: 1px solid #f1f3f5;
-            margin-bottom: 16px;
+            padding: 4px 8px 14px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
+            gap: 10px;
         }
 
-        .sidebar-logo-link {
-            display: inline-flex;
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
+            border-radius: 9px;
+            display: flex;
             align-items: center;
-            text-decoration: none;
-            width: 100%;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 108, 78, 0.3);
+            color: #ffffff;
         }
 
-        .sidebar-logo-img {
-            max-width: 100%;
-            height: auto;
-            max-height: 44px;
-            object-fit: contain;
-            display: block;
+        .brand-title {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-subtitle {
+            color: #797879;
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
 
         .nav-item-custom {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            color: #64748b;
-            border-radius: 9999px; /* Design system pill shape */
+            gap: 10px;
+            padding: 8px 12px;
+            color: #ababac;
+            border-radius: 8px;
             text-decoration: none;
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             font-weight: 500;
-            margin-bottom: 6px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
+            margin-bottom: 3px;
+            transition: all 0.15s ease;
         }
 
         .nav-item-custom:hover {
             background-color: var(--sidebar-hover);
-            color: var(--neutral);
-            transform: translateX(3px);
+            color: #f2f0f1;
         }
 
         .nav-item-custom.active {
-            background: var(--primary-dark);
+            background: #006c4e;
             color: #ffffff;
             font-weight: 600;
-            border: 1px solid var(--primary-dark);
-            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.25);
         }
 
         .nav-item-custom.active i {
             color: #ffffff !important;
         }
 
-        /* MODEL STATUS & FOOTER CARD */
-        .sidebar-footer-card {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 14px;
-            margin-top: auto;
+        .nav-item-custom i {
+            font-size: 1.15rem;
+            width: 22px;
+            text-align: center;
         }
 
-        @keyframes pulse-emerald {
-            0% { box-shadow: 0 0 0 0 rgba(0, 108, 78, 0.6); }
-            70% { box-shadow: 0 0 0 6px rgba(0, 108, 78, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 108, 78, 0); }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #5ac596;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(90, 197, 150, 0.7);
+            animation: pulse-green 2s infinite;
         }
 
-        .pulse-active-dot {
-            animation: pulse-emerald 2s infinite;
-            background-color: var(--primary) !important;
+        @keyframes pulse-green {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(90, 197, 150, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(90, 197, 150, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(90, 197, 150, 0);
+            }
         }
 
         /* MAIN CONTENT LAYOUT */
         .main-content {
             margin-left: var(--sidebar-width);
-            padding: 28px 36px;
+            padding: 24px 32px;
             min-height: 100vh;
-            background: var(--body-bg);
             transition: margin-left 0.3s ease;
         }
 
@@ -352,6 +387,19 @@
             color: #dc2626;
         }
 
+        /* HERO TITLE GRADIENT & BADGES */
+        .hero-title-gradient {
+            background: linear-gradient(135deg, #1b1c1d 0%, #00513a 60%, #1ca379 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .bg-emerald {
+            background-color: var(--primary) !important;
+        }
+
         /* ALERTS */
         .alert-custom {
             border-radius: 14px;
@@ -388,13 +436,14 @@
 <body>
 
 <!-- MOBILE HEADER -->
-<header class="mobile-header">
-    <div class="d-flex align-items-center">
-        <a href="/dataset" class="sidebar-logo-link">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="HoaxCheck Studio" style="max-height: 34px; width: auto; object-fit: contain;">
-        </a>
+<header class="mobile-header" style="background: var(--neutral-darkest); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 12px 18px;">
+    <div class="d-flex align-items-center gap-2">
+        <div class="brand-icon" style="width: 28px; height: 28px;">
+            <i class="bi bi-shield-check fs-6 text-white"></i>
+        </div>
+        <span class="fw-bold text-white" style="font-size: 0.95rem;">HoaxCheck</span>
     </div>
-    <button class="btn btn-dark btn-sm text-white rounded-pill px-3" type="button" id="sidebarToggle" aria-label="Toggle Sidebar">
+    <button class="btn btn-dark btn-sm text-white rounded-pill px-3 border border-secondary border-opacity-25" type="button" id="sidebarToggle" aria-label="Toggle Sidebar">
         <i class="bi bi-list fs-5"></i>
     </button>
 </header>
@@ -404,66 +453,62 @@
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <a href="/dataset" class="sidebar-logo-link">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="HoaxCheck Studio" class="sidebar-logo-img">
-        </a>
+        <div class="brand-icon">
+            <i class="bi bi-shield-check fs-5"></i>
+        </div>
+        <div>
+            <div class="brand-title">HoaxCheck</div>
+            <div class="brand-subtitle">AI & ML Verification Studio</div>
+        </div>
     </div>
 
     <div class="nav flex-column mb-auto">
         <a href="/detector" class="nav-item-custom {% if active_page == 'detector' %}active{% endif %}">
-            <i class="bi bi-cpu fs-6"></i>
+            <i class="bi bi-cpu fs-5"></i>
             <span>Cek Hoaks (Live ML)</span>
         </a>
         <a href="/pipeline" class="nav-item-custom {% if active_page == 'pipeline' %}active{% endif %}">
-            <i class="bi bi-diagram-3 fs-6"></i>
+            <i class="bi bi-diagram-3 fs-5"></i>
             <span>Pipeline Arsitektur ML</span>
         </a>
         <a href="/benchmark" class="nav-item-custom {% if active_page == 'benchmark' %}active{% endif %}">
-            <i class="bi bi-graph-up-arrow fs-6"></i>
+            <i class="bi bi-graph-up-arrow fs-5"></i>
             <span>Benchmark Riset ML</span>
         </a>
         <a href="/dataset" class="nav-item-custom {% if active_page == 'dataset' %}active{% endif %}">
-            <i class="bi bi-folder2-open fs-6"></i>
+            <i class="bi bi-folder2-open fs-5"></i>
             <span>Kelola Dataset</span>
         </a>
         <a href="/scraper" class="nav-item-custom {% if active_page == 'scraper' %}active{% endif %}">
-            <i class="bi bi-cloud-arrow-down fs-6"></i>
+            <i class="bi bi-cloud-arrow-down fs-5"></i>
             <span>Scraper Berita</span>
         </a>
         <a href="/train" class="nav-item-custom {% if active_page == 'train' %}active{% endif %}">
-            <i class="bi bi-gear-wide-connected fs-6"></i>
+            <i class="bi bi-gear-wide-connected fs-5"></i>
             <span>Train Model ML</span>
         </a>
         <a href="/admin" class="nav-item-custom {% if active_page == 'admin' %}active{% endif %}">
-            <i class="bi bi-database-gear fs-6"></i>
+            <i class="bi bi-database-gear fs-5"></i>
             <span>Admin Data Supabase</span>
         </a>
     </div>
 
-    <!-- Status Model & User Footer -->
-    <div class="sidebar-footer-card small">
-        <div class="d-flex align-items-center gap-2 mb-2">
-            {% if model_info %}
-                <div class="rounded-circle pulse-active-dot" style="width: 10px; height: 10px;"></div>
-                <strong class="text-dark">{{ model_info.algorithm }}</strong>
-            {% else %}
-                <div class="bg-secondary rounded-circle" style="width: 10px; height: 10px;"></div>
-                <span class="text-secondary">Model: Belum Dilatih</span>
-            {% endif %}
+    <div class="pt-3 border-top border-secondary border-opacity-10 text-muted small mt-auto">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="pulse-dot"></div>
+            <span class="text-white small fw-bold">ML Engine Active</span>
         </div>
-        <div class="mb-3 text-secondary" style="font-size: 11px;">
-            {% if model_info %}
-                Akurasi: <span class="fw-bold" style="color: var(--primary);">{{ model_info.accuracy }}%</span> (F1: {{ model_info.f1_score }}%)
+        <div class="mb-3" style="font-size: 11px; color: #797879;">
+            {% if model_info and model_info.algorithm %}
+                {{ model_info.algorithm }} {% if model_info.metrics %}({{ "%.1f"|format(model_info.metrics.accuracy * 100) }}%){% endif %}
             {% else %}
-                Bernoulli NB &amp; NLP Engine
+                Bernoulli Naive Bayes &amp; NLP
             {% endif %}
         </div>
 
-        <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary-subtle mt-2">
-            <span class="text-dark d-flex align-items-center gap-1.5 fw-medium" style="font-size: 0.9rem;">
-                <i class="bi bi-person-circle fs-6 text-secondary"></i>admin
-            </span>
-            <a href="/logout" class="btn btn-outline-danger rounded-pill fw-semibold py-1.5 px-3" style="font-size: 13px;">
+        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-10">
+            <span class="text-white-50 small"><i class="bi bi-person-circle me-1"></i>admin</span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 11px; border-radius: 9999px;">
                 <i class="bi bi-box-arrow-right me-1"></i>Logout
             </a>
         </div>
