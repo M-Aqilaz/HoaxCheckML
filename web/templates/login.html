@@ -30,7 +30,7 @@
         }
 
         body {
-            background: radial-gradient(circle at 50% 0%, #1f2724 0%, #181b1e 70%, #111315 100%);
+            background-color: #181b1e;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -43,29 +43,8 @@
             color: var(--neutral);
         }
 
-        /* Ambient glowing background circles in emerald tones */
-        .ambient-glow-1 {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(28, 162, 121, 0.16) 0%, rgba(28, 162, 121, 0) 70%);
-            top: -150px;
-            left: 50%;
-            transform: translateX(-50%);
-            pointer-events: none;
-            filter: blur(40px);
-        }
-        .ambient-glow-2 {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(90, 197, 150, 0.12) 0%, rgba(90, 197, 150, 0) 70%);
-            bottom: -100px;
-            right: 10%;
-            pointer-events: none;
-            filter: blur(50px);
+        .ambient-glow-1, .ambient-glow-2 {
+            display: none;
         }
 
         .login-card {
@@ -89,7 +68,7 @@
         .brand-icon {
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
+            background: #006c4e;
             border-radius: 18px;
             display: inline-flex;
             align-items: center;
@@ -97,7 +76,7 @@
             color: #ffffff;
             font-size: 28px;
             margin-bottom: 16px;
-            box-shadow: 0 8px 20px rgba(0, 108, 78, 0.28);
+            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.28);
         }
 
         .login-body {
