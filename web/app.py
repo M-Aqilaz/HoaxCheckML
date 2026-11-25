@@ -445,7 +445,7 @@ def train_view():
                 pass
 
             flash(
-                f"🎉 Model Bernoulli Naive Bayes berhasil dilatih! Akurasi: {acc}%, F1-Score: {f1}% (dari {len(df_all)} data seimbang). Siap dipakai di Web & Mobile API!",
+                f"Model Bernoulli Naive Bayes berhasil dilatih! Akurasi: {acc}%, F1-Score: {f1}% (dari {len(df_all)} data seimbang). Siap dipakai di Web & Mobile API!",
                 "success"
             )
         except Exception as e:

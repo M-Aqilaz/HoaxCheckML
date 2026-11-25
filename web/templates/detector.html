@@ -728,10 +728,10 @@
                         <div class="row g-2">
                             <div class="col-md-6">
                                 <select id="modelSelect" class="form-select form-select-sm p-2 fw-medium border-light-subtle rounded-3">
-                                    <option value="bernoulli" selected>🏆 Bernoulli Naive Bayes (Akurasi 92.33%)</option>
-                                    <option value="multinomial">⚡ Multinomial Naive Bayes (Akurasi 89.20%)</option>
-                                    <option value="svm">🎯 Linear Support Vector Machine (Akurasi 89.00%)</option>
-                                    <option value="knn">📍 KNN Cosine Similarity (Akurasi 85.33%)</option>
+                                    <option value="bernoulli" selected>Bernoulli Naive Bayes (Akurasi 92.33% - Acuan Utama)</option>
+                                    <option value="multinomial">Multinomial Naive Bayes (Akurasi 89.20%)</option>
+                                    <option value="svm">Linear Support Vector Machine (Akurasi 89.00%)</option>
+                                    <option value="knn">KNN Cosine Similarity (Akurasi 85.33%)</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -1200,7 +1200,7 @@ function displayMLResult(data) {
 function copyReport() {
     if (!lastVerificationResult) return;
     const isHoax = (lastVerificationResult.label === "HOAKS");
-    const statusText = isHoax ? "🔴 TERINDIKASI HOAKS / DISINFORMASI" : "🟢 TERINDIKASI FAKTUAL / BERITA VALID";
+    const statusText = isHoax ? "[HOAKS] TERINDIKASI HOAKS / DISINFORMASI" : "[VALID] TERINDIKASI FAKTUAL / BERITA VALID";
     const snippet = lastVerificationResult.text ? lastVerificationResult.text.substring(0, 150) + "..." : "";
     
     const report = 
