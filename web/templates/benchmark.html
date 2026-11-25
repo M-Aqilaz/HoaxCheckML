@@ -93,42 +93,33 @@
         }
 
         .sidebar-brand {
-            padding: 4px 8px 14px 8px;
+            padding: 6px 8px 14px 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
         }
 
-        .brand-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
-            border-radius: 9px;
-            display: flex;
+        .sidebar-logo-link {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-size: 16px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 108, 78, 0.3);
+            text-decoration: none;
+            width: 100%;
         }
 
-        .brand-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
+        .sidebar-logo-img {
+            max-width: 100%;
+            height: auto;
+            max-height: 40px;
+            object-fit: contain;
+            display: block;
+            filter: brightness(1.2) contrast(1.05);
+            transition: all 0.2s ease;
         }
 
-        .brand-subtitle {
-            font-size: 10px;
-            color: #797879;
-            font-weight: 500;
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
+        .sidebar-logo-link:hover .sidebar-logo-img {
+            opacity: 0.92;
+            transform: scale(1.02);
         }
 
         .nav-item-custom {
@@ -331,13 +322,9 @@
 <!-- SIDEBAR -->
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <div class="brand-icon">
-            <i class="bi bi-shield-check fs-5"></i>
-        </div>
-        <div>
-            <div class="brand-title">HoaxCheck</div>
-            <div class="brand-subtitle">AI & ML Verification Studio</div>
-        </div>
+        <a href="/detector" class="sidebar-logo-link">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="HoaxCheck Studio" class="sidebar-logo-img">
+        </a>
     </div>
 
     <div class="nav flex-column mb-auto">
