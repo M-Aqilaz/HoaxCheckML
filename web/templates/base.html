@@ -20,7 +20,7 @@
     <style>
         :root {
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --sidebar-width: 260px;
+            --sidebar-width: 250px;
             --sidebar-bg: #1b1c1d;
             --sidebar-hover: #2c2d2e;
             
@@ -91,7 +91,7 @@
             background-color: var(--sidebar-bg);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             color: #ababac;
-            padding: 16px 10px;
+            padding: 16px 12px;
             display: flex;
             flex-direction: column;
             z-index: 1040;
@@ -118,19 +118,20 @@
             flex-shrink: 0;
             box-shadow: 0 2px 8px rgba(0, 108, 78, 0.3);
             color: #ffffff;
+            font-size: 16px;
         }
 
         .brand-title {
             color: #ffffff;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 15px;
             line-height: 1.2;
             letter-spacing: -0.01em;
         }
 
         .brand-subtitle {
             color: #797879;
-            font-size: 0.65rem;
+            font-size: 10px;
             font-weight: 500;
             letter-spacing: 0.02em;
             text-transform: uppercase;
@@ -140,14 +141,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 12px;
+            padding: 9px 12px;
             color: #ababac;
             border-radius: 8px;
             text-decoration: none;
-            font-size: 0.84rem;
+            font-size: 13.5px;
             font-weight: 500;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             transition: all 0.15s ease;
+            line-height: 1.3;
         }
 
         .nav-item-custom:hover {
@@ -166,9 +168,10 @@
         }
 
         .nav-item-custom i {
-            font-size: 1.15rem;
+            font-size: 17px;
             width: 22px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .pulse-dot {

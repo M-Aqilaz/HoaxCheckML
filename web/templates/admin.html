@@ -18,9 +18,9 @@
     <style>
         :root {
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --sidebar-width: 260px;
+            --sidebar-width: 250px;
             --sidebar-bg: #1b1c1d;
-            --sidebar-hover: #303031;
+            --sidebar-hover: #2c2d2e;
             
             /* Primary (Emerald / Forest Ramp) */
             --primary: #006c4e;
@@ -89,72 +89,82 @@
             background-color: var(--sidebar-bg);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             color: #ababac;
-            padding: 24px 16px;
+            padding: 16px 12px;
             display: flex;
             flex-direction: column;
-            z-index: 1000;
+            z-index: 1040;
         }
 
         .sidebar-brand {
-            padding: 6px 12px 20px 12px;
+            padding: 4px 8px 14px 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .brand-icon {
-            width: 38px;
-            height: 38px;
+            width: 32px;
+            height: 32px;
             background: linear-gradient(135deg, #006c4e 0%, #1ca379 100%);
-            border-radius: 12px;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 108, 78, 0.35);
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 108, 78, 0.3);
         }
 
         .brand-title {
-            font-size: 1.15rem;
-            font-weight: 800;
+            font-size: 15px;
+            font-weight: 700;
             color: #ffffff;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
             line-height: 1.2;
         }
 
         .brand-subtitle {
-            font-size: 11px;
+            font-size: 10px;
             color: #797879;
             font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
 
         .nav-item-custom {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
+            gap: 10px;
+            padding: 9px 12px;
             color: #ababac;
-            border-radius: 9999px;
+            border-radius: 8px;
             text-decoration: none;
-            font-size: 0.92rem;
+            font-size: 13.5px;
             font-weight: 500;
-            margin-bottom: 6px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 4px;
+            transition: all 0.15s ease;
+            line-height: 1.3;
         }
 
         .nav-item-custom:hover {
             background-color: var(--sidebar-hover);
             color: #f2f0f1;
-            transform: translateX(2px);
         }
 
         .nav-item-custom.active {
             background: #006c4e;
             color: #ffffff;
             font-weight: 600;
-            box-shadow: 0 4px 14px rgba(0, 108, 78, 0.35);
+        }
+
+        .nav-item-custom i {
+            font-size: 17px;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
         }
 
         .pulse-dot {
@@ -163,6 +173,7 @@
             border-radius: 50%;
             background-color: #10b981;
             animation: pulse 2s infinite;
+            flex-shrink: 0;
         }
 
         @keyframes pulse {
@@ -174,7 +185,7 @@
         /* MAIN CONTENT */
         .main-content {
             margin-left: var(--sidebar-width);
-            padding: 32px 42px;
+            padding: 24px 32px;
             min-height: 100vh;
         }
 
