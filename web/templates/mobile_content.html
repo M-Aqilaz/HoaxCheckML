@@ -167,7 +167,8 @@ CREATE POLICY "Admin full access for app_info" ON public.app_info FOR ALL USING 
                                 <span class="text-muted" style="font-size: 10px;">Urutan #{{ tip.order_index }}</span>
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-secondary py-0 px-2" style="font-size: 11px;"
-                                            onclick='editTip({{ tip|tojson|safe }})'>
+                                            data-tip="{{ tip | tojson | forceescape }}"
+                                            onclick="editTip(JSON.parse(this.getAttribute('data-tip')))">
                                         <i class="bi bi-pencil"></i> Edit
                                     </button>
                                     <form action="/mobile-content/tips/toggle/{{ tip.id }}" method="POST" style="display:inline;">
@@ -270,7 +271,9 @@ CREATE POLICY "Admin full access for app_info" ON public.app_info FOR ALL USING 
                                             {% endif %}
                                         </div>
                                         <div class="btn-group btn-group-sm">
-                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" style="font-size: 10px;" onclick='editPrinciple({{ p|tojson|safe }})'>
+                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" style="font-size: 10px;"
+                                                    data-principle="{{ p | tojson | forceescape }}"
+                                                    onclick="editPrinciple(JSON.parse(this.getAttribute('data-principle')))">
                                                 <i class="bi bi-pencil"></i> Edit
                                             </button>
                                             <form action="/mobile-content/guide/delete-principle/{{ p.id }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus prinsip ini?');">

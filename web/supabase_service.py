@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import concurrent.futures
 from typing import Dict, Any, List, Optional, Tuple
 import requests
@@ -22,7 +23,18 @@ class SupabaseService:
         self.service_role_key = ""
         # Reuse HTTP session for keep-alive connections (avoids TLS handshake overhead)
         self.session = requests.Session()
+        # In-memory TTL cache for high performance
+        self._cache = {}
+        self._cache_ttl = 60.0  # 60 seconds
         self.load_config()
+
+    def clear_cache(self, table: Optional[str] = None):
+        if table:
+            keys_to_del = [k for k in self._cache if k.startswith(f"{table}:")]
+            for k in keys_to_del:
+                self._cache.pop(k, None)
+        else:
+            self._cache.clear()
 
     def load_config(self):
         # 1. Start from default
@@ -57,6 +69,7 @@ class SupabaseService:
         try:
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
+            self.clear_cache()
             return True
         except Exception as e:
             print(f"[SupabaseService] Gagal menyimpan config: {e}")
@@ -132,19 +145,29 @@ class SupabaseService:
         return results
 
     # --------------------------------------------------------------------------
-    # GENERIC REST CALLS (USING KEEP-ALIVE SESSION)
+    # GENERIC REST CALLS (WITH IN-MEMORY TTL CACHE & KEEP-ALIVE SESSION)
     # --------------------------------------------------------------------------
-    def select(self, table: str, params: Optional[Dict[str, str]] = None) -> Tuple[bool, Any, Optional[str]]:
+    def select(self, table: str, params: Optional[Dict[str, str]] = None, use_cache: bool = True) -> Tuple[bool, Any, Optional[str]]:
+        cache_key = f"{table}:{sorted(params.items()) if params else ''}"
+        if use_cache and cache_key in self._cache:
+            ts, val = self._cache[cache_key]
+            if time.time() - ts < self._cache_ttl:
+                return True, val, None
+
         try:
             url = f"{self.url}/rest/v1/{table}"
             resp = self.session.get(url, headers=self._headers(), params=params, timeout=8)
             if resp.status_code in (200, 206):
-                return True, resp.json(), None
+                data = resp.json()
+                if use_cache:
+                    self._cache[cache_key] = (time.time(), data)
+                return True, data, None
             return False, None, f"HTTP {resp.status_code}: {resp.text}"
         except Exception as e:
             return False, None, str(e)
 
     def insert(self, table: str, payload: Any) -> Tuple[bool, Any, Optional[str]]:
+        self.clear_cache(table)
         try:
             url = f"{self.url}/rest/v1/{table}"
             resp = self.session.post(url, headers=self._headers(return_rep=True), json=payload, timeout=8)
@@ -156,6 +179,7 @@ class SupabaseService:
             return False, None, str(e)
 
     def update(self, table: str, query_params: Dict[str, str], payload: Dict[str, Any]) -> Tuple[bool, Any, Optional[str]]:
+        self.clear_cache(table)
         try:
             url = f"{self.url}/rest/v1/{table}"
             resp = self.session.patch(url, headers=self._headers(return_rep=True), params=query_params, json=payload, timeout=8)
@@ -167,6 +191,7 @@ class SupabaseService:
             return False, None, str(e)
 
     def delete(self, table: str, query_params: Dict[str, str]) -> Tuple[bool, Any, Optional[str]]:
+        self.clear_cache(table)
         try:
             url = f"{self.url}/rest/v1/{table}"
             resp = self.session.delete(url, headers=self._headers(return_rep=True), params=query_params, timeout=8)

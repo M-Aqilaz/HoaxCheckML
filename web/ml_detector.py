@@ -4,6 +4,8 @@ import math
 import time
 import json
 import pickle
+import copy
+from collections import OrderedDict
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
@@ -17,16 +19,31 @@ MODEL_DIR = os.path.join(BASE_DIR, "models")
 KOMDIGI_PATH = os.path.join(PROJECT_DIR, "data", "komdigi_hoaks.csv")
 VALID_PATH = os.path.join(BASE_DIR, "uploads", "berita_valid_terbaru.csv")
 
+# Pre-compiled regular expressions for maximum throughput
+RE_BRACKET_TAGS = re.compile(r"\[(HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\]", re.IGNORECASE)
+RE_PAREN_TAGS = re.compile(r"\((HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\)", re.IGNORECASE)
+RE_URLS = re.compile(r"https?://\S+|www\.\S+")
+RE_HTML = re.compile(r"<.*?>")
+RE_NON_ALPHA = re.compile(r"[^a-zA-Z\s]")
+RE_SPACES = re.compile(r"\s+")
+
+RE_CHAIN = re.compile(r"\b(viralkan|sebarkan|bagikan|grup\s+wa|grup\s+whatsapp|teruskan|kirimkan\s+ke)\b", re.IGNORECASE)
+RE_URGENCY = re.compile(r"\b(sebelum dihapus|segera|cair serentak|hari ini juga|kuota habis|kuota terbatas|jangan tunda)\b", re.IGNORECASE)
+RE_PHISHING = re.compile(r"\b(blogspot|wordpress|tinyurl|bit\.ly|s\.id|shorturl|t\.me|wa\.me|cair-bansos|bansos-cair|klaim-hadiah)\b", re.IGNORECASE)
+RE_EMOTIONAL = re.compile(r"(\!{2,}|\?{2,})")
+RE_GOV = re.compile(r"\b(resmi|kementerian|kemenkes|kemensos|kemendikbud|pemerintah|bansos|presiden|kapolri|blt)\b", re.IGNORECASE)
+RE_MEDIA = re.compile(r"\b(antara|kompas|tempo|detik|reuters|siaran pers)\b", re.IGNORECASE)
+
 
 def clean_text(text):
     if not isinstance(text, str):
         return ""
-    text = re.sub(r"\[(HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\]", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"\((HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\)", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"https?://\S+|www\.\S+", "", text)
-    text = re.sub(r"<.*?>", "", text)
-    text = re.sub(r"[^a-zA-Z\s]", " ", text)
-    return re.sub(r"\s+", " ", text.lower()).strip()
+    text = RE_BRACKET_TAGS.sub("", text)
+    text = RE_PAREN_TAGS.sub("", text)
+    text = RE_URLS.sub("", text)
+    text = RE_HTML.sub("", text)
+    text = RE_NON_ALPHA.sub(" ", text)
+    return RE_SPACES.sub(" ", text.lower()).strip()
 
 
 class HoaxMLDetector:
@@ -39,10 +56,15 @@ class HoaxMLDetector:
         self.total_hoax_samples = 0
         self.total_valid_samples = 0
         self.metadata = {}
+        self._prediction_cache = OrderedDict()
+        self._pipeline_cache = OrderedDict()
+        self._cache_max_size = 1024
         self.reload_model()
 
     def reload_model(self):
         """Muat model scikit-learn (.pkl) dan TF-IDF vectorizer dari folder web/models/"""
+        self._prediction_cache.clear()
+        self._pipeline_cache.clear()
         os.makedirs(MODEL_DIR, exist_ok=True)
         bernoulli_path = os.path.join(MODEL_DIR, "model_bernoulli.pkl")
         tfidf_path = os.path.join(MODEL_DIR, "tfidf_vectorizer.pkl")
@@ -146,29 +168,29 @@ class HoaxMLDetector:
         has_urgency = False
         has_phishing = False
 
-        if re.search(r"\b(viralkan|sebarkan|bagikan|grup\s+wa|grup\s+whatsapp|teruskan|kirimkan\s+ke)\b", raw_text, re.I):
+        if RE_CHAIN.search(raw_text):
             patterns.append("Ajakan Teruskan Pesan (Forward Chain)")
             has_chain = True
 
-        if re.search(r"\b(sebelum dihapus|segera|cair serentak|hari ini juga|kuota habis|kuota terbatas|jangan tunda)\b", raw_text, re.I):
+        if RE_URGENCY.search(raw_text):
             patterns.append("Pola Urgensi Palsu (False Urgency)")
             has_urgency = True
 
-        if re.search(r"\b(blogspot|wordpress|tinyurl|bit\.ly|s\.id|shorturl|t\.me|wa\.me|cair-bansos|bansos-cair|klaim-hadiah)\b", raw_text, re.I):
+        if RE_PHISHING.search(raw_text):
             patterns.append("Domain Tautan Tidak Resmi / Phishing")
             has_phishing = True
 
-        if re.search(r"(\!{2,}|\?{2,})", raw_text):
+        if RE_EMOTIONAL.search(raw_text):
             patterns.append("Tanda Baca Emosional Berlebih")
 
         # Cek apakah pencatutan instansi resmi di tengah narasi phishing/urgensi palsu
-        mentions_gov = bool(re.search(r"\b(resmi|kementerian|kemenkes|kemensos|kemendikbud|pemerintah|bansos|presiden|kapolri|blt)\b", raw_text, re.I))
+        mentions_gov = bool(RE_GOV.search(raw_text))
         if mentions_gov:
             if has_chain or has_urgency or has_phishing:
                 patterns.append("Pencatutan Nama Lembaga Resmi")
             else:
                 patterns.append("Atribusi Sumber & Lembaga Formal")
-        elif re.search(r"\b(antara|kompas|tempo|detik|reuters|siaran pers)\b", raw_text, re.I):
+        elif RE_MEDIA.search(raw_text):
             patterns.append("Atribusi Sumber & Lembaga Formal")
 
         return patterns, (has_chain or has_urgency or has_phishing)
@@ -182,6 +204,15 @@ class HoaxMLDetector:
             }
 
         raw_text = text.strip()
+        cache_key = f"{model_name}:{raw_text}"
+        if cache_key in self._prediction_cache:
+            res = copy.deepcopy(self._prediction_cache[cache_key])
+            res["cached"] = True
+            res["execution_ms"] = round((time.time() - t_start) * 1000, 2)
+            if res["execution_ms"] < 0.1:
+                res["execution_ms"] = 0.1
+            return res
+
         cleaned = clean_text(raw_text)
         patterns, has_suspicious_pattern = self.extract_linguistic_patterns(raw_text)
 
@@ -271,7 +302,7 @@ class HoaxMLDetector:
         if execution_ms < 1.0:
             execution_ms = round(execution_ms + 1.2, 1)
 
-        return {
+        result = {
             "status": "success",
             "label": "HOAKS" if is_hoax else "VALID",
             "confidence": conf_percent,
@@ -287,12 +318,28 @@ class HoaxMLDetector:
             "prob_valid": round(prob_valid * 100, 1)
         }
 
+        # Save to LRU cache
+        if len(self._prediction_cache) >= self._cache_max_size:
+            self._prediction_cache.popitem(last=False)
+        self._prediction_cache[cache_key] = copy.deepcopy(result)
+
+        return result
+
     def simulate_pipeline(self, text, model_name="bernoulli"):
         t_start = time.time()
         if not text or not text.strip():
             return {"error": "Teks tidak boleh kosong.", "status": "error"}
 
         raw_text = text.strip()
+        cache_key = f"{model_name}:{raw_text}"
+        if cache_key in self._pipeline_cache:
+            res = copy.deepcopy(self._pipeline_cache[cache_key])
+            res["cached"] = True
+            res["execution_ms"] = round((time.time() - t_start) * 1000, 2)
+            if res["execution_ms"] < 0.1:
+                res["execution_ms"] = 0.1
+            return res
+
         raw_char_count = len(raw_text)
         raw_word_count = len(raw_text.split())
 
@@ -442,6 +489,13 @@ class HoaxMLDetector:
             "confidence": confidence,
             "execution_ms": execution_ms
         }
+
+        # Save to LRU cache
+        if len(self._pipeline_cache) >= self._cache_max_size:
+            self._pipeline_cache.popitem(last=False)
+        self._pipeline_cache[cache_key] = copy.deepcopy(result)
+
+        return result
 
 
 # Singleton instance

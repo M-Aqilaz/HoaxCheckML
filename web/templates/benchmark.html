@@ -10,13 +10,14 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='logo.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
-    <!-- Fonts: Design System Inter -->
+    <!-- Preconnect & Resource Hints -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         html {
             font-size: 13.5px;
@@ -319,7 +320,7 @@
 <aside class="sidebar">
     <div class="sidebar-brand">
         <a href="/detector" class="sidebar-logo-link">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="HoaxCheck Studio" class="sidebar-logo-img">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="HoaxCheck Studio" class="sidebar-logo-img" loading="lazy" decoding="async">
         </a>
     </div>
 
@@ -619,7 +620,8 @@
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 // Chart 1: Akurasi (%) - Design System Color Harmony

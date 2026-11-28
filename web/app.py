@@ -2,6 +2,7 @@ import os
 import re
 import json
 import time
+import gzip
 import pickle
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -58,6 +59,37 @@ def assets_proxy(filename):
         return send_from_directory(assets_dir, filename)
     return send_from_directory(os.path.join(app.root_path, "static"), filename)
 
+
+@app.after_request
+def optimize_http_response(response):
+    # Static asset caching headers
+    if request.path.startswith("/static/") or request.path.startswith("/assets/"):
+        response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=604800"
+    elif request.path in ["/favicon.ico", "/favicon.png", "/logo.png"]:
+        response.headers["Cache-Control"] = "public, max-age=86400"
+
+    # Fast Gzip compression for HTML, JSON, and CSS to minimize network payload
+    if (
+        response.status_code == 200
+        and not response.direct_passthrough
+        and response.content_length
+        and response.content_length > 600
+        and "gzip" in request.headers.get("Accept-Encoding", "").lower()
+        and not response.headers.get("Content-Encoding")
+    ):
+        ctype = response.headers.get("Content-Type", "")
+        if any(t in ctype for t in ["text/html", "application/json", "text/css", "application/javascript"]):
+            try:
+                compressed = gzip.compress(response.get_data())
+                response.set_data(compressed)
+                response.headers["Content-Encoding"] = "gzip"
+                response.headers["Content-Length"] = len(compressed)
+                response.headers["Vary"] = "Accept-Encoding"
+            except Exception:
+                pass
+
+    return response
+
 # Sumber Berita Valid Terpercaya (RSS Resmi)
 RSS_SOURCES = {
     "antara": {
@@ -112,20 +144,43 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+# Pre-compiled regexes for high throughput text cleaning
+RE_BRACKET_TAGS = re.compile(r'\[(HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\]', re.IGNORECASE)
+RE_PAREN_TAGS = re.compile(r'\((HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\)', re.IGNORECASE)
+RE_URLS = re.compile(r'https?://\S+|www\.\S+')
+RE_HTML = re.compile(r'<.*?>')
+RE_NON_ALPHA = re.compile(r'[^a-zA-Z\s]')
+RE_SPACES = re.compile(r'\s+')
+
+
 def clean_text(text):
     if not isinstance(text, str):
         return ""
-    text = re.sub(r'\[(HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\]', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'\((HOAKS|DISINFORMASI|MISINFORMASI|KLARIFIKASI|SALAH|FALSE)\)', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'https?:\/\/\S+|www\.\S+', '', text)
-    text = re.sub(r'<.*?>', '', text)
-    text = re.sub(r'[^a-zA-Z\s]', ' ', text)
-    return re.sub(r'\s+', ' ', text.lower()).strip()
+    text = RE_BRACKET_TAGS.sub('', text)
+    text = RE_PAREN_TAGS.sub('', text)
+    text = RE_URLS.sub('', text)
+    text = RE_HTML.sub('', text)
+    text = RE_NON_ALPHA.sub(' ', text)
+    return RE_SPACES.sub(' ', text.lower()).strip()
+
+
+_file_info_cache = {}
 
 
 def get_file_info(filepath):
-    size_kb = round(os.path.getsize(filepath) / 1024, 2)
-    mtime = datetime.fromtimestamp(os.path.getmtime(filepath)).strftime("%d-%m-%Y %H:%M")
+    try:
+        stat = os.stat(filepath)
+        size_bytes = stat.st_size
+        mtime_float = stat.st_mtime
+    except Exception:
+        return {"name": os.path.basename(filepath), "size": 0, "modified": "-", "rows": "-"}
+
+    cache_entry = _file_info_cache.get(filepath)
+    if cache_entry and cache_entry["mtime"] == mtime_float and cache_entry["size_bytes"] == size_bytes:
+        return cache_entry["data"]
+
+    size_kb = round(size_bytes / 1024, 2)
+    mtime = datetime.fromtimestamp(mtime_float).strftime("%d-%m-%Y %H:%M")
     row_count = "-"
     filename = os.path.basename(filepath)
     if filename.endswith(".csv"):
@@ -138,12 +193,18 @@ def get_file_info(filepath):
     elif filename.endswith((".xlsx", ".xls")):
         row_count = "Excel"
 
-    return {
+    data = {
         "name": filename,
         "size": size_kb,
         "modified": mtime,
         "rows": row_count
     }
+    _file_info_cache[filepath] = {
+        "mtime": mtime_float,
+        "size_bytes": size_bytes,
+        "data": data
+    }
+    return data
 
 
 def get_file_list():
