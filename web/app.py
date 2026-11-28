@@ -34,7 +34,7 @@ try:
 except ImportError:
     from supabase_service import supabase_service
 
-app = Flask(__name__, static_folder="assets", static_url_path="/assets")
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.secret_key = "hoaxcheck-secret-key-pbl5"
 
 # Kredensial Login Admin
@@ -51,12 +51,12 @@ app.config["MODEL_DIR"] = MODEL_DIR
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-@app.route("/static/<path:filename>")
-def static_proxy(filename):
-    static_dir = os.path.join(app.root_path, "static")
-    if os.path.exists(os.path.join(static_dir, filename)):
-        return send_from_directory(static_dir, filename)
-    return send_from_directory(os.path.join(app.root_path, "assets"), filename)
+@app.route("/assets/<path:filename>")
+def assets_proxy(filename):
+    assets_dir = os.path.join(app.root_path, "assets")
+    if os.path.exists(os.path.join(assets_dir, filename)):
+        return send_from_directory(assets_dir, filename)
+    return send_from_directory(os.path.join(app.root_path, "static"), filename)
 
 # Sumber Berita Valid Terpercaya (RSS Resmi)
 RSS_SOURCES = {
@@ -1069,9 +1069,35 @@ def api_mobile_content():
 
 @app.route("/favicon.ico")
 def favicon():
+    for folder in ["static", "assets"]:
+        ico_path = os.path.join(app.root_path, folder, "favicon.ico")
+        if os.path.exists(ico_path):
+            return send_from_directory(
+                os.path.join(app.root_path, folder),
+                "favicon.ico",
+                mimetype="image/x-icon"
+            )
     return send_from_directory(
         os.path.join(app.root_path, "static"),
         "favicon.png",
+        mimetype="image/png"
+    )
+
+
+@app.route("/favicon.png")
+def favicon_png():
+    return send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "favicon.png",
+        mimetype="image/png"
+    )
+
+
+@app.route("/logo.png")
+def logo_png():
+    return send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "logo.png",
         mimetype="image/png"
     )
 
