@@ -34,6 +34,9 @@ Engine aktif saat ini berada di [web/ml_detector.py](web/ml_detector.py).
 HoaxCheckML/
 ├── data/                                 # Dataset utama
 │   └── komdigi_hoaks.csv                 # Dataset judul berita hoaks Komdigi
+├── dokumentasi/                          # Dokumentasi visual dan figur evaluasi model
+│   ├── gambar_f1_contoh_sampel.png       # Visualisasi contoh sampel data
+│   └── gambar_f2_confusion_matrix.png    # Matriks konfusi hasil pengujian model
 ├── notebooks/                            # Seluruh eksperimen Jupyter Notebook
 │   ├── 01_klasifikasi/                   # Eksperimen awal (KNN, Naive Bayes, SVM)
 │   ├── 02_pengujian_supervised/          # Pengujian komprehensif model supervised (KNN, LR, NB, RF, SVM)
